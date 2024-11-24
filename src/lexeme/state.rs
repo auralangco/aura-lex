@@ -84,4 +84,16 @@ mod tests {
         let stream = LexemeState::stream();
         dbg!(&stream);
     }
+
+    #[test]
+    fn simulate_lexeme_acceptance() {
+        use super::LexemeState;
+        let mut stream = LexemeState::stream();
+        for c in "..=".chars() {
+            stream = stream.into_iter().filter_map(|s| s.accept(c)).collect();
+        }
+        assert_eq!(stream.len(), 1);
+        assert!(stream[0].acceptable());
+        assert_eq!(stream[0], LexemeState::Op(super::op::OpState::CRange(super::op::TripleCharOpState::Third)));
+    }
 }
