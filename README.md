@@ -13,7 +13,7 @@ $ cargo add aura-lex
 And then call
 
 ```rs
-let Vec<Lexeme<'_> = aura_lex::lex(src);
+let lexemes Vec<Lexeme<'_> = aura_lex::lex(src);
 ```
 
 This basic function takes in a `&str` and lexes it producing a vector of lexemes
