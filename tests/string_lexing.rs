@@ -8,7 +8,9 @@ mod tests {
         let lexemes = lex(src);
 
         assert!(lexemes.len() == 1);
-        assert!(lexemes[0].kind.unambiguous_unchecked() == aura_lex::lexeme::kind::LexemeKind::LitStr);
+        assert!(
+            lexemes[0].kind.unambiguous_unchecked() == aura_lex::lexeme::kind::LexemeKind::LitStr
+        );
         assert!(lexemes[0].slice == "\"Hello World\"");
         assert!(lexemes[0].start == 0);
         assert!(lexemes[0].end == 13);

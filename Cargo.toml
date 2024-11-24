@@ -13,3 +13,6 @@ parallel = ["rayon"]
 
 [dependencies]
 rayon = { version = "1.10.0", optional = true }
+
+[lints.rust]
+warnings = "deny"

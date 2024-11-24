@@ -45,7 +45,7 @@ impl Accepter for DelimAccepter {
             Self::CBrack(acp) => acp.accept(c).map(Self::CBrack),
             Self::OBrace(acp) => acp.accept(c).map(Self::OBrace),
             Self::CBrace(acp) => acp.accept(c).map(Self::CBrace),
-        }.into()
+        }
     }
 }
 

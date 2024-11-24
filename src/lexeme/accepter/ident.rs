@@ -75,7 +75,9 @@ impl Accepter for ValAccepter {
     fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c.is_ascii_lowercase() => Some(Self::Acceptable),
-            Self::Acceptable if c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' => Some(Self::Acceptable),
+            Self::Acceptable if c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' => {
+                Some(Self::Acceptable)
+            }
             _ => None,
         }
     }
@@ -106,7 +108,6 @@ impl Accepter for TypeAccepter {
     }
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TagAccepter {
     #[default]
@@ -129,7 +130,9 @@ impl Accepter for TagAccepter {
         match self {
             Self::Unset if c == '#' => Some(Self::WaitingAlpha),
             Self::WaitingAlpha if c.is_ascii_lowercase() => Some(Self::WaitingAlphaNumDash),
-            Self::WaitingAlphaNumDash if c.is_ascii_lowercase() || c.is_ascii_digit() => Some(Self::WaitingAlphaNumDash),
+            Self::WaitingAlphaNumDash if c.is_ascii_lowercase() || c.is_ascii_digit() => {
+                Some(Self::WaitingAlphaNumDash)
+            }
             Self::WaitingAlphaNumDash if c == '-' => Some(Self::WaitingAlpha),
             _ => None,
         }
@@ -161,7 +164,11 @@ impl Accepter for MacroAccepter {
             Self::Unset if c == '@' => Some(Self::WaitingLeadingAlpha),
             Self::WaitingLeadingAlpha if c.is_ascii_lowercase() => Some(Self::WaitingAlphaNumColon),
             Self::WaitingAlpha if c.is_ascii_lowercase() => Some(Self::WaitingAlphaNumColon),
-            Self::WaitingAlphaNumColon if c.is_ascii_lowercase() || c.is_ascii_digit() || c == ':' => Some(Self::WaitingAlphaNumColon),
+            Self::WaitingAlphaNumColon
+                if c.is_ascii_lowercase() || c.is_ascii_digit() || c == ':' =>
+            {
+                Some(Self::WaitingAlphaNumColon)
+            }
             _ => None,
         }
     }

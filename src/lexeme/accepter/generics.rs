@@ -1,9 +1,8 @@
 use super::Accepter;
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 /// A generic state accepter for a single character operator.
-/// 
+///
 /// This state is used by lexemes made of a single character namely `OP`.
 pub enum SingleCharAccepter<const CH: char> {
     #[default]
@@ -15,7 +14,7 @@ pub enum SingleCharAccepter<const CH: char> {
 
 impl<const CH: char> Accepter for SingleCharAccepter<CH> {
     type Accepter = Self;
-    
+
     fn acceptable(&self) -> bool {
         *self == Self::Set
     }
@@ -31,7 +30,7 @@ impl<const CH: char> Accepter for SingleCharAccepter<CH> {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 /// A generic state accepter for a double character operator.
-/// 
+///
 /// This state is used by lexemes made of a double character namely `OP1 OP2`.
 pub enum DoubleCharAccepter<const CH1: char, const CH2: char> {
     #[default]
@@ -45,7 +44,7 @@ pub enum DoubleCharAccepter<const CH1: char, const CH2: char> {
 
 impl<const CH1: char, const CH2: char> Accepter for DoubleCharAccepter<CH1, CH2> {
     type Accepter = Self;
-    
+
     fn acceptable(&self) -> bool {
         *self == Self::Second
     }
@@ -61,7 +60,7 @@ impl<const CH1: char, const CH2: char> Accepter for DoubleCharAccepter<CH1, CH2>
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 /// A generic state accepter for a triple character operator.
-/// 
+///
 /// This state is used by lexemes made of a triple character namely `OP1 OP2 OP3`.
 pub enum TripleCharAccepter<const CH1: char, const CH2: char, const CH3: char> {
     #[default]
@@ -75,9 +74,11 @@ pub enum TripleCharAccepter<const CH1: char, const CH2: char, const CH3: char> {
     Third,
 }
 
-impl<const OP1: char, const OP2: char, const OP3: char> Accepter for TripleCharAccepter<OP1, OP2, OP3> {
+impl<const OP1: char, const OP2: char, const OP3: char> Accepter
+    for TripleCharAccepter<OP1, OP2, OP3>
+{
     type Accepter = Self;
-    
+
     fn acceptable(&self) -> bool {
         *self == Self::Third
     }
@@ -90,5 +91,4 @@ impl<const OP1: char, const OP2: char, const OP3: char> Accepter for TripleCharA
             _ => None,
         }
     }
-    
 }

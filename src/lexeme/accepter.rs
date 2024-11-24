@@ -1,25 +1,24 @@
-pub mod generics;
 pub mod comment;
-pub mod kw;
-pub mod ident;
-pub mod op;
 pub mod delim;
+pub mod generics;
+pub mod ident;
+pub mod kw;
 pub mod lit;
+pub mod op;
 pub mod pt;
 pub mod ws;
-
 
 /// A trait for functions that check if a lexeme accepts a character and if it is in a valid state.
 pub trait Accepter {
     /// The accepter produced by the lexeme when it accepts a character.
     type Accepter;
 
-    /// Check if the current lexeme is acceptable so the parser knows 
+    /// Check if the current lexeme is acceptable so the parser knows
     /// that it is in a valid state.
     fn acceptable(&self) -> bool;
 
     /// Check if the lexeme accepts the next character.
-    /// If it does, it returns the new state of the lexeme. 
+    /// If it does, it returns the new state of the lexeme.
     /// Otherwise, it returns `None`.
     fn accept(self, c: char) -> Option<Self::Accepter>;
 }
@@ -41,7 +40,7 @@ impl Accepter for LexemeAccepter {
     type Accepter = Self;
 
     /// Check if the current lexeme accepts the next character.
-    /// 
+    ///
     /// If so, it returns the new state of the lexeme. Otherwise, it returns `None`.
     fn accept(self, c: char) -> Option<Self> {
         match self {
@@ -76,14 +75,35 @@ impl LexemeAccepter {
     pub fn stream() -> Vec<Self> {
         use LexemeAccepter::*;
         vec![
-            kw::KwAccepter::stream().into_iter().map(Kw).collect::<Vec<Self>>(),
-            ident::IdentAccepter::stream().into_iter().map(Ident).collect::<Vec<Self>>(),
-            op::OpAccepter::stream().into_iter().map(Op).collect::<Vec<Self>>(),
-            delim::DelimAccepter::stream().into_iter().map(Delim).collect::<Vec<Self>>(),
-            lit::LitAccepter::stream().into_iter().map(Lit).collect::<Vec<Self>>(),
-            pt::PtState::stream().into_iter().map(Pt).collect::<Vec<Self>>(),
+            kw::KwAccepter::stream()
+                .into_iter()
+                .map(Kw)
+                .collect::<Vec<Self>>(),
+            ident::IdentAccepter::stream()
+                .into_iter()
+                .map(Ident)
+                .collect::<Vec<Self>>(),
+            op::OpAccepter::stream()
+                .into_iter()
+                .map(Op)
+                .collect::<Vec<Self>>(),
+            delim::DelimAccepter::stream()
+                .into_iter()
+                .map(Delim)
+                .collect::<Vec<Self>>(),
+            lit::LitAccepter::stream()
+                .into_iter()
+                .map(Lit)
+                .collect::<Vec<Self>>(),
+            pt::PtState::stream()
+                .into_iter()
+                .map(Pt)
+                .collect::<Vec<Self>>(),
             vec![Ws(ws::WhitespaceAccepter::default())],
-            comment::CommentAccepter::stream().into_iter().map(Comment).collect::<Vec<Self>>(),
+            comment::CommentAccepter::stream()
+                .into_iter()
+                .map(Comment)
+                .collect::<Vec<Self>>(),
         ]
         .into_iter()
         .flatten()
@@ -111,6 +131,9 @@ mod tests {
         }
         assert_eq!(stream.len(), 1);
         assert!(stream[0].acceptable());
-        assert_eq!(stream[0], LexemeAccepter::Op(op::OpAccepter::CRange(generics::TripleCharAccepter::Third)));
+        assert_eq!(
+            stream[0],
+            LexemeAccepter::Op(op::OpAccepter::CRange(generics::TripleCharAccepter::Third))
+        );
     }
 }

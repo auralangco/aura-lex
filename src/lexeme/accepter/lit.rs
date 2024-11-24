@@ -84,21 +84,26 @@ impl Accepter for IntDecAccepter {
     type Accepter = Self;
 
     fn acceptable(&self) -> bool {
-        match self {
-            Self::LeadingZero | Self::LeadingNonZero | Self::WithBitWidth(8) | Self::WithBitWidth(16) | Self::WithBitWidth(32) | Self::WithBitWidth(64) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Self::LeadingZero
+                | Self::LeadingNonZero
+                | Self::WithBitWidth(8)
+                | Self::WithBitWidth(16)
+                | Self::WithBitWidth(32)
+                | Self::WithBitWidth(64)
+        )
     }
 
     fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
-            Self::Unset if c.is_digit(10) && c != '0' => Some(Self::LeadingNonZero),
+            Self::Unset if c.is_ascii_digit() && c != '0' => Some(Self::LeadingNonZero),
             Self::LeadingZero if c == 'U' || c == 'I' => Some(Self::WithBitWidth(0)),
-            Self::LeadingNonZero if c.is_digit(10) => Some(Self::LeadingNonZero),
+            Self::LeadingNonZero if c.is_ascii_digit() => Some(Self::LeadingNonZero),
             Self::LeadingNonZero if c == '_' => Some(Self::LeadingNonZeroUnderscore),
             Self::LeadingNonZero if c == 'U' || c == 'I' => Some(Self::WithBitWidth(0)),
-            Self::LeadingNonZeroUnderscore if c.is_digit(10) => Some(Self::LeadingNonZero),
+            Self::LeadingNonZeroUnderscore if c.is_ascii_digit() => Some(Self::LeadingNonZero),
             Self::WithBitWidth(0) if c == '8' => Some(Self::WithBitWidth(8)),
             Self::WithBitWidth(0) if c == '1' => Some(Self::WithBitWidth(1)),
             Self::WithBitWidth(0) if c == '3' => Some(Self::WithBitWidth(3)),
@@ -205,7 +210,7 @@ pub enum IntHexAccepter {
 
 impl Accepter for IntHexAccepter {
     type Accepter = Self;
-    
+
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
     }
@@ -214,9 +219,17 @@ impl Accepter for IntHexAccepter {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
             Self::LeadingZero if c == 'x' => Some(Self::Leading0x),
-            Self::Leading0x | Self::Acceptable if c.is_digit(16) || c.is_ascii_lowercase() || c.is_ascii_uppercase() => Some(Self::Acceptable),
+            Self::Leading0x | Self::Acceptable
+                if c.is_ascii_hexdigit() || c.is_ascii_lowercase() || c.is_ascii_uppercase() =>
+            {
+                Some(Self::Acceptable)
+            }
             Self::Acceptable if c == '_' => Some(Self::TrailingUnderscore),
-            Self::TrailingUnderscore if c.is_digit(16) || c.is_ascii_lowercase() || c.is_ascii_uppercase() => Some(Self::Acceptable),
+            Self::TrailingUnderscore
+                if c.is_ascii_hexdigit() || c.is_ascii_lowercase() || c.is_ascii_uppercase() =>
+            {
+                Some(Self::Acceptable)
+            }
             _ => None,
         }
     }
@@ -251,12 +264,12 @@ impl Accepter for FltAccepter {
     fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
-            Self::Unset if c.is_digit(10) && c != '0' => Some(Self::LeadingNonZero),
+            Self::Unset if c.is_ascii_digit() && c != '0' => Some(Self::LeadingNonZero),
             Self::LeadingZero if c == '.' => Some(Self::DecimalPoint),
-            Self::LeadingNonZero if c.is_digit(10) => Some(Self::LeadingNonZero),
+            Self::LeadingNonZero if c.is_ascii_digit() => Some(Self::LeadingNonZero),
             Self::LeadingNonZero if c == '.' => Some(Self::DecimalPoint),
-            Self::DecimalPoint if c.is_digit(10) => Some(Self::Acceptable),
-            Self::Acceptable if c.is_digit(10) => Some(Self::Acceptable),
+            Self::DecimalPoint if c.is_ascii_digit() => Some(Self::Acceptable),
+            Self::Acceptable if c.is_ascii_digit() => Some(Self::Acceptable),
             _ => None,
         }
     }
@@ -277,11 +290,10 @@ pub enum CharAccepter {
     /// The lexeme has a leading `'` and a character was just read
     Acceptable,
 }
-    
 
 impl Accepter for CharAccepter {
     type Accepter = Self;
-    
+
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
     }
@@ -289,7 +301,11 @@ impl Accepter for CharAccepter {
     fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '\'' => Some(Self::LeadingSingleQuote),
-            Self::LeadingSingleQuote if c.is_ascii_alphanumeric() || c.is_ascii_punctuation() || c == ' ' => Some(Self::SingleChar),
+            Self::LeadingSingleQuote
+                if c.is_ascii_alphanumeric() || c.is_ascii_punctuation() || c == ' ' =>
+            {
+                Some(Self::SingleChar)
+            }
             Self::SingleChar if c == '\'' => Some(Self::Acceptable),
             _ => None,
         }
@@ -307,7 +323,7 @@ pub enum StrAccepter {
     /// The lexeme has a leading `"` and a character was just read
     /// Next can be either `"` or end
     Any,
-    /// A `\` was just read	
+    /// A `\` was just read
     /// Next will be escaped
     EscapeNext,
     /// The lexeme has a trailing '"'"
@@ -350,7 +366,7 @@ pub enum AtomAccepter {
 
 impl Accepter for AtomAccepter {
     type Accepter = Self;
-    
+
     fn acceptable(&self) -> bool {
         *self == Self::WaitingAlphaNumDash
     }
@@ -358,8 +374,12 @@ impl Accepter for AtomAccepter {
     fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '\'' => Some(Self::WaitingLeadingAlpha),
-            Self::WaitingLeadingAlpha | Self::WaitingAlpha if c.is_ascii_lowercase() => Some(Self::WaitingAlphaNumDash),
-            Self::WaitingAlphaNumDash if c.is_ascii_lowercase() || c.is_ascii_digit() => Some(Self::WaitingAlphaNumDash),
+            Self::WaitingLeadingAlpha | Self::WaitingAlpha if c.is_ascii_lowercase() => {
+                Some(Self::WaitingAlphaNumDash)
+            }
+            Self::WaitingAlphaNumDash if c.is_ascii_lowercase() || c.is_ascii_digit() => {
+                Some(Self::WaitingAlphaNumDash)
+            }
             Self::WaitingAlphaNumDash if c == '-' => Some(Self::WaitingAlpha),
             _ => None,
         }
@@ -374,15 +394,15 @@ mod tests {
 
         let mut acp = StrAccepter::default();
         assert_eq!(acp, StrAccepter::Unset);
-        assert_eq!(acp.acceptable(), false);
+        assert!(!acp.acceptable());
         acp = acp.accept('"').unwrap();
-        assert_eq!(acp.acceptable(), false);
+        assert!(!acp.acceptable());
         acp = acp.accept('a').unwrap();
-        assert_eq!(acp.acceptable(), false);
+        assert!(!acp.acceptable());
         acp = acp.accept('b').unwrap();
-        assert_eq!(acp.acceptable(), false);
+        assert!(!acp.acceptable());
         acp = acp.accept('"').unwrap();
-        assert_eq!(acp.acceptable(), true);
+        assert!(acp.acceptable());
         assert_eq!(acp.accept('c'), None);
     }
 }

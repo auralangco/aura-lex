@@ -1,4 +1,7 @@
-use super::{generics::{DoubleCharAccepter, SingleCharAccepter, TripleCharAccepter}, Accepter};
+use super::{
+    generics::{DoubleCharAccepter, SingleCharAccepter, TripleCharAccepter},
+    Accepter,
+};
 
 const GT: char = '>';
 
