@@ -26,7 +26,7 @@ pub trait Accepter {
 
 /// The state of a lexeme with defines if the current lexeme accept the next character or if it is a valid lexeme.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LexemeState {
+pub enum LexemeAccepter {
     Kw(kw::KwAccepter),
     Ident(ident::IdentAccepter),
     Op(op::OpAccepter),
@@ -37,7 +37,7 @@ pub enum LexemeState {
     Comment(comment::CommentAccepter),
 }
 
-impl Accepter for LexemeState {
+impl Accepter for LexemeAccepter {
     type Accepter = Self;
 
     /// Check if the current lexeme accepts the next character.
@@ -71,10 +71,10 @@ impl Accepter for LexemeState {
     }
 }
 
-impl LexemeState {
+impl LexemeAccepter {
     /// Generate a stream of lexeme default states for all possible lexemes.
     pub fn stream() -> Vec<Self> {
-        use LexemeState::*;
+        use LexemeAccepter::*;
         vec![
             kw::KwAccepter::stream().into_iter().map(Kw).collect::<Vec<Self>>(),
             ident::IdentAccepter::stream().into_iter().map(Ident).collect::<Vec<Self>>(),
@@ -97,20 +97,20 @@ mod tests {
 
     #[test]
     fn stream_check() {
-        use super::LexemeState;
-        let stream = LexemeState::stream();
+        use super::LexemeAccepter;
+        let stream = LexemeAccepter::stream();
         dbg!(&stream);
     }
 
     #[test]
     fn simulate_lexeme_acceptance() {
-        use super::LexemeState;
-        let mut stream = LexemeState::stream();
+        use super::LexemeAccepter;
+        let mut stream = LexemeAccepter::stream();
         for c in "..=".chars() {
             stream = stream.into_iter().filter_map(|s| s.accept(c)).collect();
         }
         assert_eq!(stream.len(), 1);
         assert!(stream[0].acceptable());
-        assert_eq!(stream[0], LexemeState::Op(op::OpAccepter::CRange(generics::TripleCharAccepter::Third)));
+        assert_eq!(stream[0], LexemeAccepter::Op(op::OpAccepter::CRange(generics::TripleCharAccepter::Third)));
     }
 }

@@ -1,4 +1,4 @@
-use crate::{lexeme::{accepter::{Accepter, LexemeState}, Coord, Lexeme}, LexemeKind};
+use crate::{lexeme::{accepter::{Accepter, LexemeAccepter}, Coord, Lexeme}, LexemeKind};
 
 /// The delimiters in the source code.
 /// Those can be used to separate lexemes.
@@ -13,7 +13,7 @@ pub fn lex<'src>(src: &'src str) -> Vec<Lexeme<'src>> {
     let mut start_coord = Coord { line: 1, col: 1 };
     let mut end_coord: Coord = start_coord;
 
-    let mut candidates = LexemeState::stream();
+    let mut candidates = LexemeAccepter::stream();
     let mut lexemes = vec![];
     
     for (i, c) in chars {
@@ -22,7 +22,7 @@ pub fn lex<'src>(src: &'src str) -> Vec<Lexeme<'src>> {
         if acceptable_candidates_count(&next_candidates) == 0 && acceptable_candidates_count(&candidates) > 0 {
             lexemes.push(build_lexeme_from_candidates(candidates, src, start, i, start_coord, end_coord));
 
-            candidates = get_next_candidates(&LexemeState::stream(), c);
+            candidates = get_next_candidates(&LexemeAccepter::stream(), c);
 
             start = i;
             start_coord = end_coord;
@@ -63,7 +63,7 @@ pub fn remove_comments<'src>(lexemes: Vec<Vec<Lexeme<'src>>>) -> Vec<Vec<Lexeme<
 
 /// Runs `accept` on every candidate in `candidates` and returns the ones that accept `c`.
 #[cfg(not(feature = "parallel"))]
-fn get_next_candidates<'src>(candidates: &Vec<LexemeState>, c: char) -> Vec<LexemeState> {
+fn get_next_candidates<'src>(candidates: &Vec<LexemeAccepter>, c: char) -> Vec<LexemeAccepter> {
     candidates.into_iter()
         .filter_map(|s| s.accept(c))
         .collect()
@@ -71,7 +71,7 @@ fn get_next_candidates<'src>(candidates: &Vec<LexemeState>, c: char) -> Vec<Lexe
 
 /// Runs `accept` on every candidate in `candidates` in parallel and returns the ones that accept `c`.
 #[cfg(feature = "parallel")]
-fn get_next_candidates<'src>(candidates: &Vec<LexemeState>, c: char) -> Vec<LexemeState> {
+fn get_next_candidates<'src>(candidates: &Vec<LexemeAccepter>, c: char) -> Vec<LexemeAccepter> {
     use rayon::prelude::*;
 
     candidates.into_par_iter()
@@ -81,13 +81,13 @@ fn get_next_candidates<'src>(candidates: &Vec<LexemeState>, c: char) -> Vec<Lexe
 
 /// Returns the number of acceptable candidates in `candidates`.
 #[cfg(not(feature = "parallel"))]
-fn acceptable_candidates_count(candidates: &Vec<LexemeState>) -> usize {
+fn acceptable_candidates_count(candidates: &Vec<LexemeAccepter>) -> usize {
     candidates.iter().filter(|s| s.acceptable()).count()
 }
 
 /// Returns the number of acceptable candidates in `candidates` in parallel.
 #[cfg(feature = "parallel")]
-fn acceptable_candidates_count(candidates: &Vec<LexemeState>) -> usize {
+fn acceptable_candidates_count(candidates: &Vec<LexemeAccepter>) -> usize {
     use rayon::prelude::*;
 
     candidates.par_iter().filter(|s| s.acceptable()).count()
@@ -95,7 +95,7 @@ fn acceptable_candidates_count(candidates: &Vec<LexemeState>) -> usize {
 
 /// Builds lexemes from the candidates in `candidates` and returns them.
 #[cfg(not(feature = "parallel"))]
-fn build_lexeme_from_candidates<'src>(candidates: Vec<LexemeState>, src: &'src str, start: usize, end: usize, start_coord: Coord, end_coord: Coord) -> Lexeme<'src> {
+fn build_lexeme_from_candidates<'src>(candidates: Vec<LexemeAccepter>, src: &'src str, start: usize, end: usize, start_coord: Coord, end_coord: Coord) -> Lexeme<'src> {
     use crate::lexeme::LexemeAmbiguity;
 
     let states: Vec<_> = candidates.into_iter()
@@ -121,7 +121,7 @@ fn build_lexeme_from_candidates<'src>(candidates: Vec<LexemeState>, src: &'src s
 
 /// Builds lexemes from the candidates in `candidates` in parallel and returns them.
 #[cfg(feature = "parallel")]
-fn build_lexemes_from_candidates<'src>(candidates: Vec<LexemeState>, src: &'src str, start: usize, end: usize, start_coord: Coord, end_coord: Coord) -> Vec<Lexeme<'src>> {
+fn build_lexemes_from_candidates<'src>(candidates: Vec<LexemeAccepter>, src: &'src str, start: usize, end: usize, start_coord: Coord, end_coord: Coord) -> Vec<Lexeme<'src>> {
     use rayon::prelude::*;
 
     candidates.into_par_iter()
@@ -150,7 +150,7 @@ mod tests {
         let chars = src.chars().enumerate();
         let mut start = 0;
 
-        let mut candidates = LexemeState::stream();
+        let mut candidates = LexemeAccepter::stream();
         let mut lexemes = vec![];
 
         for (i, c) in chars {
@@ -166,7 +166,7 @@ mod tests {
                     .map(|s| (s, &src[start..i], start, i))
                     .collect::<Vec<_>>());
 
-                candidates = LexemeState::stream().into_iter()
+                candidates = LexemeAccepter::stream().into_iter()
                     .filter_map(|s| s.accept(c))
                     .collect();
                 start = i;

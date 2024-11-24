@@ -1,4 +1,4 @@
-use super::accepter::{self, ident, kw, LexemeState};
+use super::accepter::{self, ident, kw, LexemeAccepter};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LexemeKind {
@@ -69,10 +69,10 @@ pub enum LexemeKind {
     CommentBlock,
 }
 
-impl From<LexemeState> for LexemeKind {
-    fn from(value: LexemeState) -> Self {
+impl From<LexemeAccepter> for LexemeKind {
+    fn from(value: LexemeAccepter) -> Self {
         match value {
-            LexemeState::Kw(kw_state) => match kw_state {
+            LexemeAccepter::Kw(kw_state) => match kw_state {
                 kw::KwAccepter::Val(_) => Self::KwVal,
                 kw::KwAccepter::Fn(_) => Self::KwFn,
                 kw::KwAccepter::Type(_) => Self::KwType,
@@ -82,14 +82,14 @@ impl From<LexemeState> for LexemeKind {
                 kw::KwAccepter::Import(_) => Self::KwImport,
                 kw::KwAccepter::Object(_) => Self::KwObject,
             },
-            LexemeState::Ident(ident_state) => match ident_state {
+            LexemeAccepter::Ident(ident_state) => match ident_state {
                 ident::IdentAccepter::Val(_) => Self::IdentVal,
                 ident::IdentAccepter::Type(_) => Self::IdentType,
                 ident::IdentAccepter::Tag(_) => Self::IdentTag,
                 ident::IdentAccepter::Macro(_) => Self::IdentMacro,
                 ident::IdentAccepter::Subtype(_) => Self::IdentSubtype,
             },
-            LexemeState::Op(op_state) => match op_state {
+            LexemeAccepter::Op(op_state) => match op_state {
                 accepter::op::OpAccepter::Decl(_) => Self::OpDecl,
                 accepter::op::OpAccepter::Eq(_) => Self::OpEq,
                 accepter::op::OpAccepter::Plus(_) => Self::OpPlus,
@@ -122,7 +122,7 @@ impl From<LexemeState> for LexemeKind {
                 accepter::op::OpAccepter::Spread(_) => Self::OpSpread,
                 accepter::op::OpAccepter::DollarDollar(_) => Self::OpDollarDollar,
             },
-            LexemeState::Delim(delim_state) => match delim_state {
+            LexemeAccepter::Delim(delim_state) => match delim_state {
                 accepter::delim::DelimAccepter::OParen(_) => Self::DelimOParen,
                 accepter::delim::DelimAccepter::CParen(_) => Self::DelimCParen,
                 accepter::delim::DelimAccepter::OBrack(_) => Self::DelimOBrack,
@@ -130,7 +130,7 @@ impl From<LexemeState> for LexemeKind {
                 accepter::delim::DelimAccepter::OBrace(_) => Self::DelimOBrace,
                 accepter::delim::DelimAccepter::CBrace(_) => Self::DelimCBrace,
             },
-            LexemeState::Lit(lit_state) => match lit_state {
+            LexemeAccepter::Lit(lit_state) => match lit_state {
                 accepter::lit::LitAccepter::IntDec(_) => Self::LitIntDec,
                 accepter::lit::LitAccepter::IntBin(_) => Self::LitIntBin,
                 accepter::lit::LitAccepter::IntOct(_) => Self::LitIntOct,
@@ -140,14 +140,14 @@ impl From<LexemeState> for LexemeKind {
                 accepter::lit::LitAccepter::Str(_) => Self::LitStr,
                 accepter::lit::LitAccepter::Atom(_) => Self::LitAtom,
             },
-            LexemeState::Pt(pt_state) => match pt_state {
+            LexemeAccepter::Pt(pt_state) => match pt_state {
                 accepter::pt::PtState::Dot(_) => Self::PtDot,
                 accepter::pt::PtState::Comma(_) => Self::PtComma,
                 accepter::pt::PtState::Colon(_) => Self::PtColon,
                 accepter::pt::PtState::Semi(_) => Self::PtSemi,
             },
-            LexemeState::Ws(_) => Self::Ws,
-            LexemeState::Comment(comment_state) => match comment_state {
+            LexemeAccepter::Ws(_) => Self::Ws,
+            LexemeAccepter::Comment(comment_state) => match comment_state {
                 accepter::comment::CommentAccepter::Line(_) => Self::CommentLine,
                 accepter::comment::CommentAccepter::Block(_) => Self::CommentBlock,
             },
