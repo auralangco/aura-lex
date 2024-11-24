@@ -2,10 +2,10 @@ use super::{op::SingleCharOpState, Accepter};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PtState {
-    PtDot(SingleCharOpState<'.'>),
-    PtComma(SingleCharOpState<','>),
-    PtColon(SingleCharOpState<':'>),
-    PtSemi(SingleCharOpState<';'>),
+    Dot(SingleCharOpState<'.'>),
+    Comma(SingleCharOpState<','>),
+    Colon(SingleCharOpState<':'>),
+    Semi(SingleCharOpState<';'>),
 }
 
 impl Accepter for PtState {
@@ -13,19 +13,19 @@ impl Accepter for PtState {
 
     fn acceptable(&self) -> bool {
         match self {
-            Self::PtDot(state) => state.acceptable(),
-            Self::PtComma(state) => state.acceptable(),
-            Self::PtColon(state) => state.acceptable(),
-            Self::PtSemi(state) => state.acceptable(),
+            Self::Dot(state) => state.acceptable(),
+            Self::Comma(state) => state.acceptable(),
+            Self::Colon(state) => state.acceptable(),
+            Self::Semi(state) => state.acceptable(),
         }
     }
 
     fn accept(self, c: char) -> Option<Self::State> {
         match self {
-            Self::PtDot(state) => state.accept(c).map(Self::PtDot),
-            Self::PtComma(state) => state.accept(c).map(Self::PtComma),
-            Self::PtColon(state) => state.accept(c).map(Self::PtColon),
-            Self::PtSemi(state) => state.accept(c).map(Self::PtSemi),
+            Self::Dot(state) => state.accept(c).map(Self::Dot),
+            Self::Comma(state) => state.accept(c).map(Self::Comma),
+            Self::Colon(state) => state.accept(c).map(Self::Colon),
+            Self::Semi(state) => state.accept(c).map(Self::Semi),
         }
     }
 }
@@ -34,10 +34,10 @@ impl PtState {
     pub fn stream() -> Vec<Self> {
         use PtState::*;
         vec![
-            PtDot(SingleCharOpState::default()),
-            PtComma(SingleCharOpState::default()),
-            PtColon(SingleCharOpState::default()),
-            PtSemi(SingleCharOpState::default()),
+            Dot(SingleCharOpState::default()),
+            Comma(SingleCharOpState::default()),
+            Colon(SingleCharOpState::default()),
+            Semi(SingleCharOpState::default()),
         ]
     }
 }

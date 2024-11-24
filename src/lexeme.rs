@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
-use state::LexemeState;
+use kind::LexemeKind;
 
 pub mod state;
+pub mod kind;
 
 /// A lexeme in the source code.
 /// 
@@ -13,7 +14,7 @@ pub mod state;
 /// the parser
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Lexeme<'src> {
-    pub ty: LexemeState,
+    pub kind: LexemeKind,
     pub slice: &'src str,
     pub start: usize,
     pub end: usize,

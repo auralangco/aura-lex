@@ -22,8 +22,8 @@ pub fn lex<'src>(src: &'src str) -> Vec<Vec<Lexeme<'src>>> {
         if next_candidates.iter().filter(|s| s.acceptable()).count() == 0 {
             lexemes.push(candidates.into_iter()
                 .filter(|s| s.acceptable())
-                .map(|s| Lexeme { 
-                    ty: s, 
+                .map(|state| Lexeme { 
+                    kind: state.into(), 
                     slice: &src[start..i], 
                     start, 
                     end: i, 
@@ -95,11 +95,14 @@ mod tests {
 
     #[test]
     fn test_lex() {
-        let src = r#"val x := 10;
-        val name := "John Doe";
+        let src = r#"val x := 10
+        val name := "John Doe"
 
-        main -> {
-            print(name);
+        type Person := @enum (name String, full_name (first String, last String))
+
+        main -> 'main:{
+            parts := @mut ["John", "Doe"];
+            parts[0] = "Jane";
         }
         "#;
         let lexemes = lex(src);
