@@ -1,9 +1,11 @@
+pub mod comment;
 pub mod kw;
 pub mod ident;
 pub mod op;
 pub mod delim;
 pub mod lit;
 pub mod pt;
+pub mod ws;
 
 
 /// A trait for functions that check if a lexeme accepts a character and if it is in a valid state.
@@ -55,6 +57,8 @@ pub enum LexemeState {
     Delim(delim::DelimState),
     Lit(lit::LitState),
     Pt(pt::PtState),
+    Ws(ws::WhitespaceState),
+    Comment(comment::CommentState),
 }
 
 impl Accepter for LexemeState {
@@ -71,6 +75,8 @@ impl Accepter for LexemeState {
             Self::Delim(state) => state.accept(c).map(Self::Delim),
             Self::Lit(state) => state.accept(c).map(Self::Lit),
             Self::Pt(state) => state.accept(c).map(Self::Pt),
+            Self::Ws(state) => state.accept(c).map(Self::Ws),
+            Self::Comment(state) => state.accept(c).map(Self::Comment),
         }
     }
 
@@ -83,6 +89,8 @@ impl Accepter for LexemeState {
             Self::Delim(state) => state.acceptable(),
             Self::Lit(state) => state.acceptable(),
             Self::Pt(state) => state.acceptable(),
+            Self::Ws(state) => state.acceptable(),
+            Self::Comment(state) => state.acceptable(),
         }
     }
 }
@@ -98,6 +106,8 @@ impl LexemeState {
             delim::DelimState::stream().into_iter().map(Delim).collect::<Vec<Self>>(),
             lit::LitState::stream().into_iter().map(Lit).collect::<Vec<Self>>(),
             pt::PtState::stream().into_iter().map(Pt).collect::<Vec<Self>>(),
+            vec![Ws(ws::WhitespaceState::default())],
+            comment::CommentState::stream().into_iter().map(Comment).collect::<Vec<Self>>(),
         ]
         .into_iter()
         .flatten()

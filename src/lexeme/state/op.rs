@@ -39,7 +39,7 @@ pub enum OpState {
     /// The lexeme to accept a `>` operator.
     Gt(SingleCharOpState<GT>),
     /// The lexeme to accept a `>=` operator.
-    GtEq(DoubleCharOpState<' ', '='>),
+    GtEq(DoubleCharOpState<GT, '='>),
     /// The lexeme to accept a `<` operator.
     Lt(SingleCharOpState<'<'>),
     /// The lexeme to accept a `<=` operator.
@@ -47,7 +47,7 @@ pub enum OpState {
     /// The lexeme to accept a `<<` operator.
     LtLt(DoubleCharOpState<'<', '<'>),
     /// The lexeme to accept a `>>` operator.
-    GtGt(DoubleCharOpState<' ', GT>),
+    GtGt(DoubleCharOpState<GT, GT>),
     /// The lexeme to accept a `->` operator.
     RArw(DoubleCharOpState<'-', GT>),
     /// The lexeme to accept a `=>` operator.

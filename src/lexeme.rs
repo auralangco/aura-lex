@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use state::LexemeState;
 
 pub mod state;
@@ -15,6 +17,34 @@ pub struct Lexeme<'src> {
     pub slice: &'src str,
     pub start: usize,
     pub end: usize,
-    pub start_coord: (usize, usize),
-    pub end_coord: (usize, usize),
+    pub start_coord: Coord,
+    pub end_coord: Coord,
+}
+
+/// The coordinates of a character in the source code.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash, PartialOrd, Ord)]
+pub struct Coord {
+    pub line: usize,
+    pub col: usize,
+}
+
+impl<T: Into<usize>, U: Into<usize>> From<(T, U)> for Coord {
+    fn from((line, col): (T, U)) -> Self {
+        Self {
+            line: line.into(),
+            col: col.into(),
+        }
+    }
+}
+
+impl<T: From<usize>, U: From<usize>> Into<(T, U)> for Coord {
+    fn into(self) -> (T, U) {
+        (self.line.into(), self.col.into())
+    }
+}
+
+impl Display for Coord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(l: {}, c: {})", self.line, self.col)
+    }
 }
