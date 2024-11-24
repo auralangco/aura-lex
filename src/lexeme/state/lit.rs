@@ -312,6 +312,7 @@ impl StrState {
             Self::Unset if c == '"' => Some(Self::LeadingDoubleQuote),
             Self::LeadingDoubleQuote if c != '\\' => Some(Self::Any),
             state if c == '\\' && state != Self::EscapeNext => Some(Self::EscapeNext),
+            Self::Any if c != '"' => Some(Self::Any),
             Self::Any if c == '"' => Some(Self::Acceptable),
             Self::EscapeNext => Some(Self::Any),
             _ => None,
@@ -348,5 +349,26 @@ impl AtomState {
             Self::WaitingAlphaNumDash if c == '-' => Some(Self::WaitingAlpha),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn lex_string() {
+        use super::*;
+
+        let mut state = StrState::default();
+        assert_eq!(state, StrState::Unset);
+        assert_eq!(state.acceptable(), false);
+        state = state.accept('"').unwrap();
+        assert_eq!(state.acceptable(), false);
+        state = state.accept('a').unwrap();
+        assert_eq!(state.acceptable(), false);
+        state = state.accept('b').unwrap();
+        assert_eq!(state.acceptable(), false);
+        state = state.accept('"').unwrap();
+        assert_eq!(state.acceptable(), true);
+        assert_eq!(state.accept('c'), None);
     }
 }
