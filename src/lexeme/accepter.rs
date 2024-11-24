@@ -1,3 +1,4 @@
+pub mod generics;
 pub mod comment;
 pub mod kw;
 pub mod ident;
@@ -92,7 +93,7 @@ impl LexemeState {
 
 #[cfg(test)]
 mod tests {
-    use crate::lexeme::accepter::{op, Accepter};
+    use crate::lexeme::accepter::{generics, op, Accepter};
 
     #[test]
     fn stream_check() {
@@ -110,6 +111,6 @@ mod tests {
         }
         assert_eq!(stream.len(), 1);
         assert!(stream[0].acceptable());
-        assert_eq!(stream[0], LexemeState::Op(op::OpAccepter::CRange(op::TripleCharOpState::Third)));
+        assert_eq!(stream[0], LexemeState::Op(op::OpAccepter::CRange(generics::TripleCharAccepter::Third)));
     }
 }

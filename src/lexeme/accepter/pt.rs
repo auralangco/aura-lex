@@ -1,4 +1,4 @@
-use super::{op::SingleCharAccepter, Accepter};
+use super::{generics::SingleCharAccepter, Accepter};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PtState {

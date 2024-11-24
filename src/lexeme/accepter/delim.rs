@@ -1,4 +1,4 @@
-use super::{op::SingleCharAccepter, Accepter};
+use super::{generics::SingleCharAccepter, Accepter};
 
 const OPAREN: char = '(';
 const CPAREN: char = ')';
