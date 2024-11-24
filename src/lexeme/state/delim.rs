@@ -1,4 +1,4 @@
-use super::BasicState;
+use super::{Accepter, BasicState};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DelimState {
@@ -16,8 +16,10 @@ pub enum DelimState {
     CBrace(BasicState),
 }
 
-impl DelimState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for DelimState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         match self {
             Self::OParen(state)
             | Self::CParen(state)
@@ -28,7 +30,7 @@ impl DelimState {
         }
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::OParen(BasicState::Unset) if c == '(' => Self::OParen(BasicState::Acceptable),
             Self::CParen(BasicState::Unset) if c == ')' => Self::CParen(BasicState::Acceptable),
@@ -39,7 +41,9 @@ impl DelimState {
             _ => return None,
         }.into()
     }
+}
 
+impl DelimState {
     pub fn stream() -> Vec<Self> {
         use DelimState::*;
         vec![

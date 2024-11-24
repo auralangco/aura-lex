@@ -1,3 +1,5 @@
+use super::Accepter;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IdentState {
     /// The lexeme to accept a value identifier.
@@ -17,8 +19,10 @@ pub enum IdentState {
     Subtype(SubtypeState),
 }
 
-impl IdentState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for IdentState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         match self {
             Self::Val(state) => state.acceptable(),
             Self::Type(state) => state.acceptable(),
@@ -28,7 +32,7 @@ impl IdentState {
         }
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self::State> {
         match self {
             Self::Val(state) => state.accept(c).map(Self::Val),
             Self::Type(state) => state.accept(c).map(Self::Type),
@@ -37,7 +41,9 @@ impl IdentState {
             Self::Subtype(state) => state.accept(c).map(Self::Subtype),
         }
     }
+}
 
+impl IdentState {
     pub fn stream() -> Vec<Self> {
         use IdentState::*;
         vec![
@@ -59,12 +65,14 @@ pub enum ValState {
     Acceptable,
 }
 
-impl ValState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for ValState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Acceptable
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c.is_ascii_lowercase() => Some(Self::Acceptable),
             Self::Acceptable if c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' => Some(Self::Acceptable),
@@ -82,12 +90,14 @@ pub enum TypeState {
     Acceptable,
 }
 
-impl TypeState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for TypeState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Acceptable
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c.is_ascii_uppercase() => Some(Self::Acceptable),
             Self::Acceptable if c.is_ascii_alphanumeric() => Some(Self::Acceptable),
@@ -108,12 +118,14 @@ pub enum TagState {
     WaitingAlphaNumDash,
 }
 
-impl TagState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for TagState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::WaitingAlphaNumDash
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '#' => Some(Self::WaitingAlpha),
             Self::WaitingAlpha if c.is_ascii_lowercase() => Some(Self::WaitingAlphaNumDash),
@@ -137,12 +149,14 @@ pub enum MacroState {
     WaitingAlphaNumColon,
 }
 
-impl MacroState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for MacroState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::WaitingAlphaNumColon || *self == Self::WaitingAlpha
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '@' => Some(Self::WaitingLeadingAlpha),
             Self::WaitingLeadingAlpha if c.is_ascii_lowercase() => Some(Self::WaitingAlphaNumColon),
@@ -164,12 +178,14 @@ pub enum SubtypeState {
     Any,
 }
 
-impl SubtypeState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for SubtypeState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Any
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '$' => Some(Self::WaitingAlpha),
             Self::WaitingAlpha if c.is_ascii_alphabetic() => Some(Self::Any),

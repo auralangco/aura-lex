@@ -5,6 +5,22 @@ pub mod delim;
 pub mod lit;
 pub mod pt;
 
+
+/// A trait for functions that check if a lexeme accepts a character and if it is in a valid state.
+pub trait Accepter {
+    /// The state produced by the lexeme when it accepts a character.
+    type State;
+
+    /// Check if the current lexeme is acceptable so the parser knows 
+    /// that it is in a valid state.
+    fn acceptable(&self) -> bool;
+
+    /// Check if the lexeme accepts the next character.
+    /// If it does, it returns the new state of the lexeme. 
+    /// Otherwise, it returns `None`.
+    fn accept(self, c: char) -> Option<Self::State>;
+}
+
 /// A generic state for lexemes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum BasicState {
@@ -15,9 +31,18 @@ pub enum BasicState {
     Acceptable,
 }
 
-impl BasicState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for BasicState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Acceptable
+    }
+
+    fn accept(self, _: char) -> Option<Self> {
+        match self {
+            Self::Unset => Some(Self::Acceptable),
+            _ => None,
+        }
     }
 }
 
@@ -32,11 +57,13 @@ pub enum LexemeState {
     Pt(pt::PtState),
 }
 
-impl LexemeState {
+impl Accepter for LexemeState {
+    type State = Self;
+
     /// Check if the current lexeme accepts the next character.
     /// 
     /// If so, it returns the new state of the lexeme. Otherwise, it returns `None`.
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Kw(state) => state.accept(c).map(Self::Kw),
             Self::Ident(state) => state.accept(c).map(Self::Ident),
@@ -48,7 +75,7 @@ impl LexemeState {
     }
 
     /// Check if the current lexeme is acceptable. It means that the lexeme is a valid lexeme.
-    pub fn acceptable(&self) -> bool {
+    fn acceptable(&self) -> bool {
         match self {
             Self::Kw(state) => state.acceptable(),
             Self::Ident(state) => state.acceptable(),
@@ -58,7 +85,9 @@ impl LexemeState {
             Self::Pt(state) => state.acceptable(),
         }
     }
+}
 
+impl LexemeState {
     /// Generate a stream of lexeme default states for all possible lexemes.
     pub fn stream() -> Vec<Self> {
         use LexemeState::*;
@@ -78,6 +107,8 @@ impl LexemeState {
 
 #[cfg(test)]
 mod tests {
+    use crate::lexeme::state::Accepter;
+
     #[test]
     fn stream_check() {
         use super::LexemeState;

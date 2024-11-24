@@ -1,3 +1,5 @@
+use super::Accepter;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LitState {
     /// The lexeme to accept a `int` literal.
@@ -12,8 +14,10 @@ pub enum LitState {
     Atom(AtomState),
 }
 
-impl LitState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for LitState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         match self {
             Self::IntDec(state) => state.acceptable(),
             Self::IntBin(state) => state.acceptable(),
@@ -26,7 +30,7 @@ impl LitState {
         }
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self::State> {
         match self {
             Self::IntDec(state) => state.accept(c).map(Self::IntDec),
             Self::IntBin(state) => state.accept(c).map(Self::IntBin),
@@ -38,7 +42,9 @@ impl LitState {
             Self::Atom(state) => state.accept(c).map(Self::Atom),
         }
     }
+}
 
+impl LitState {
     pub fn stream() -> Vec<Self> {
         use LitState::*;
         vec![

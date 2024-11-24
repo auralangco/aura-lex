@@ -1,3 +1,5 @@
+use super::Accepter;
+
 const GT: char = '>';
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -64,8 +66,10 @@ pub enum OpState {
     Spread(TripleCharOpState<'.', '.', '.'>),
 }
 
-impl OpState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for OpState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         match self {
             Self::Decl(state) => state.acceptable(),
             Self::Eq(state) => state.acceptable(),
@@ -100,7 +104,7 @@ impl OpState {
         }
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self::State> {
         match self {
             Self::Decl(state) => state.accept(c).map(Self::Decl),
             Self::Eq(state) => state.accept(c).map(Self::Eq),
@@ -134,7 +138,9 @@ impl OpState {
             Self::Spread(state) => state.accept(c).map(Self::Spread),
         }
     }
+}
 
+impl OpState {
     pub fn stream() -> Vec<Self> {
         use OpState::*;
         vec![
@@ -173,6 +179,9 @@ impl OpState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+/// A generic state accepter for a single character operator.
+/// 
+/// This state is used by lexemes made of a single character namely `OP`.
 pub enum SingleCharOpState<const OP: char> {
     #[default]
     /// The state to accept a single character operator.
@@ -181,12 +190,14 @@ pub enum SingleCharOpState<const OP: char> {
     Set,
 }
 
-impl<const OP: char> SingleCharOpState<OP> {
-    pub fn acceptable(&self) -> bool {
+impl<const OP: char> Accepter for SingleCharOpState<OP> {
+    type State = Self;
+    
+    fn acceptable(&self) -> bool {
         *self == Self::Set
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self::State> {
         if self == Self::Unset && c == OP {
             Some(Self::Set)
         } else {
@@ -196,6 +207,9 @@ impl<const OP: char> SingleCharOpState<OP> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+/// A generic state accepter for a double character operator.
+/// 
+/// This state is used by lexemes made of a double character namely `OP1 OP2`.
 pub enum DoubleCharOpState<const OP1: char, const OP2: char> {
     #[default]
     /// The state to accept a double character operator.
@@ -206,12 +220,14 @@ pub enum DoubleCharOpState<const OP1: char, const OP2: char> {
     Second,
 }
 
-impl<const OP1: char, const OP2: char> DoubleCharOpState<OP1, OP2> {
-    pub fn acceptable(&self) -> bool {
+impl<const OP1: char, const OP2: char> Accepter for DoubleCharOpState<OP1, OP2> {
+    type State = Self;
+    
+    fn acceptable(&self) -> bool {
         *self == Self::Second
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self::State> {
         match self {
             Self::Unset if c == OP1 => Some(Self::First),
             Self::First if c == OP2 => Some(Self::Second),
@@ -221,6 +237,9 @@ impl<const OP1: char, const OP2: char> DoubleCharOpState<OP1, OP2> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+/// A generic state accepter for a triple character operator.
+/// 
+/// This state is used by lexemes made of a triple character namely `OP1 OP2 OP3`.
 pub enum TripleCharOpState<const OP1: char, const OP2: char, const OP3: char> {
     #[default]
     /// The state to accept a triple character operator.
@@ -233,12 +252,14 @@ pub enum TripleCharOpState<const OP1: char, const OP2: char, const OP3: char> {
     Third,
 }
 
-impl<const OP1: char, const OP2: char, const OP3: char> TripleCharOpState<OP1, OP2, OP3> {
-    pub fn acceptable(&self) -> bool {
+impl<const OP1: char, const OP2: char, const OP3: char> Accepter for TripleCharOpState<OP1, OP2, OP3> {
+    type State = Self;
+    
+    fn acceptable(&self) -> bool {
         *self == Self::Third
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self::State> {
         match self {
             Self::Unset if c == OP1 => Some(Self::First),
             Self::First if c == OP2 => Some(Self::Second),
@@ -246,4 +267,5 @@ impl<const OP1: char, const OP2: char, const OP3: char> TripleCharOpState<OP1, O
             _ => None,
         }
     }
+    
 }

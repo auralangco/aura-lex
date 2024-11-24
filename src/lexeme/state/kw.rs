@@ -1,3 +1,5 @@
+use super::Accepter;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KwState {
     Val(ValState),
@@ -10,8 +12,10 @@ pub enum KwState {
     Object(ObjectState),
 }
 
-impl KwState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for KwState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         match self {
             Self::Val(state) => state.acceptable(),
             Self::Fn(state) => state.acceptable(),
@@ -24,7 +28,7 @@ impl KwState {
         }
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self::State> {
         match self {
             Self::Val(state) => state.accept(c).map(Self::Val),
             Self::Fn(state) => state.accept(c).map(Self::Fn),
@@ -36,7 +40,8 @@ impl KwState {
             Self::Object(state) => state.accept(c).map(Self::Object),
         }
     }
-
+}
+impl KwState {
     pub fn stream() -> Vec<Self> {
         use KwState::*;
         vec![
@@ -61,12 +66,14 @@ pub enum ValState {
     Val,
 }
 
-impl ValState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for ValState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Val
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 'v' => Some(Self::V),
             Self::V if c == 'a' => Some(Self::Va),
@@ -84,12 +91,14 @@ pub enum FnState {
     Fn,
 }
 
-impl FnState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for FnState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Fn
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 'f' => Some(Self::F),
             Self::F if c == 'n' => Some(Self::Fn),
@@ -108,12 +117,14 @@ pub enum TypeState {
     Type,
 }
 
-impl TypeState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for TypeState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Type
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 't' => Some(Self::T),
             Self::T if c == 'y' => Some(Self::Ty),
@@ -133,12 +144,14 @@ pub enum TagState {
     Tag,
 }
 
-impl TagState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for TagState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Tag
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 't' => Some(Self::T),
             Self::T if c == 'a' => Some(Self::Ta),
@@ -158,12 +171,14 @@ pub enum MainState {
     Main,
 }
 
-impl MainState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for MainState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Main
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 'm' => Some(Self::M),
             Self::M if c == 'a' => Some(Self::Ma),
@@ -185,12 +200,14 @@ pub enum MacroState {
     Macro,
 }
 
-impl MacroState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for MacroState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Macro
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 'm' => Some(Self::M),
             Self::M if c == 'a' => Some(Self::Ma),
@@ -214,12 +231,14 @@ pub enum ImportState {
     Import,
 }
 
-impl ImportState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for ImportState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Import
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 'i' => Some(Self::I),
             Self::I if c == 'm' => Some(Self::Im),
@@ -244,12 +263,14 @@ pub enum ObjectState {
     Object,
 }
 
-impl ObjectState {
-    pub fn acceptable(&self) -> bool {
+impl Accepter for ObjectState {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         *self == Self::Object
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == 'o' => Some(Self::O),
             Self::O if c == 'b' => Some(Self::Ob),
