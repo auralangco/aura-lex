@@ -64,6 +64,8 @@ pub enum OpAccepter {
     CRange(TripleCharAccepter<'.', '.', '='>),
     /// The lexeme to accept a `...` operator.
     Spread(TripleCharAccepter<'.', '.', '.'>),
+    /// The lexeme to accept a `$$` operator.
+    DollarDollar(DoubleCharAccepter<'$', '$'>),
 }
 
 impl Accepter for OpAccepter {
@@ -101,6 +103,7 @@ impl Accepter for OpAccepter {
             Self::Range(state) => state.acceptable(),
             Self::CRange(state) => state.acceptable(),
             Self::Spread(state) => state.acceptable(),
+            Self::DollarDollar(state) => state.acceptable(),
         }
     }
 
@@ -136,6 +139,7 @@ impl Accepter for OpAccepter {
             Self::Range(state) => state.accept(c).map(Self::Range),
             Self::CRange(state) => state.accept(c).map(Self::CRange),
             Self::Spread(state) => state.accept(c).map(Self::Spread),
+            Self::DollarDollar(state) => state.accept(c).map(Self::DollarDollar),
         }
     }
 }

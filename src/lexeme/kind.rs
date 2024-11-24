@@ -45,6 +45,7 @@ pub enum LexemeKind {
     OpRange,
     OpCRange,
     OpSpread,
+    OpDollarDollar,
     DelimOParen,
     DelimCParen,
     DelimOBrack,
@@ -119,6 +120,7 @@ impl From<LexemeState> for LexemeKind {
                 accepter::op::OpAccepter::Range(_) => Self::OpRange,
                 accepter::op::OpAccepter::CRange(_) => Self::OpCRange,
                 accepter::op::OpAccepter::Spread(_) => Self::OpSpread,
+                accepter::op::OpAccepter::DollarDollar(_) => Self::OpDollarDollar,
             },
             LexemeState::Delim(delim_state) => match delim_state {
                 accepter::delim::DelimAccepter::OParen(_) => Self::DelimOParen,
