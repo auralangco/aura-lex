@@ -7,7 +7,7 @@ pub enum CommentAccepter {
 }
 
 impl Accepter for CommentAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
@@ -43,7 +43,7 @@ pub enum LineCommentAccepter {
 }
 
 impl Accepter for LineCommentAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
@@ -71,7 +71,7 @@ pub enum BlockCommentAccepter {
 }
 
 impl Accepter for BlockCommentAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable

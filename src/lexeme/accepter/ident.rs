@@ -20,7 +20,7 @@ pub enum IdentAccepter {
 }
 
 impl Accepter for IdentAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
@@ -32,7 +32,7 @@ impl Accepter for IdentAccepter {
         }
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         match self {
             Self::Val(state) => state.accept(c).map(Self::Val),
             Self::Type(state) => state.accept(c).map(Self::Type),
@@ -66,7 +66,7 @@ pub enum ValAccepter {
 }
 
 impl Accepter for ValAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
@@ -91,7 +91,7 @@ pub enum TypeAccepter {
 }
 
 impl Accepter for TypeAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
@@ -119,7 +119,7 @@ pub enum TagAccepter {
 }
 
 impl Accepter for TagAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::WaitingAlphaNumDash
@@ -150,7 +150,7 @@ pub enum MacroAccepter {
 }
 
 impl Accepter for MacroAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::WaitingAlphaNumColon || *self == Self::WaitingAlpha
@@ -179,7 +179,7 @@ pub enum SubtypeAccepter {
 }
 
 impl Accepter for SubtypeAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Any

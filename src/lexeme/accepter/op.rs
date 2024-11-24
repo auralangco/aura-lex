@@ -67,7 +67,7 @@ pub enum OpAccepter {
 }
 
 impl Accepter for OpAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
@@ -104,7 +104,7 @@ impl Accepter for OpAccepter {
         }
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         match self {
             Self::Decl(state) => state.accept(c).map(Self::Decl),
             Self::Eq(state) => state.accept(c).map(Self::Eq),

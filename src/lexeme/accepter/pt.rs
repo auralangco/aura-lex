@@ -9,7 +9,7 @@ pub enum PtState {
 }
 
 impl Accepter for PtState {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
@@ -20,7 +20,7 @@ impl Accepter for PtState {
         }
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         match self {
             Self::Dot(acp) => acp.accept(c).map(Self::Dot),
             Self::Comma(acp) => acp.accept(c).map(Self::Comma),

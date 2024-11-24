@@ -14,13 +14,13 @@ pub enum SingleCharAccepter<const CH: char> {
 }
 
 impl<const CH: char> Accepter for SingleCharAccepter<CH> {
-    type State = Self;
+    type Accepter = Self;
     
     fn acceptable(&self) -> bool {
         *self == Self::Set
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         if self == Self::Unset && c == CH {
             Some(Self::Set)
         } else {
@@ -44,13 +44,13 @@ pub enum DoubleCharAccepter<const CH1: char, const CH2: char> {
 }
 
 impl<const CH1: char, const CH2: char> Accepter for DoubleCharAccepter<CH1, CH2> {
-    type State = Self;
+    type Accepter = Self;
     
     fn acceptable(&self) -> bool {
         *self == Self::Second
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         match self {
             Self::Unset if c == CH1 => Some(Self::First),
             Self::First if c == CH2 => Some(Self::Second),
@@ -76,13 +76,13 @@ pub enum TripleCharAccepter<const CH1: char, const CH2: char, const CH3: char> {
 }
 
 impl<const OP1: char, const OP2: char, const OP3: char> Accepter for TripleCharAccepter<OP1, OP2, OP3> {
-    type State = Self;
+    type Accepter = Self;
     
     fn acceptable(&self) -> bool {
         *self == Self::Third
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         match self {
             Self::Unset if c == OP1 => Some(Self::First),
             Self::First if c == OP2 => Some(Self::Second),

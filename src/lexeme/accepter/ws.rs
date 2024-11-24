@@ -8,7 +8,7 @@ pub enum WhitespaceAccepter {
 }
 
 impl Accepter for WhitespaceAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable

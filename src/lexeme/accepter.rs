@@ -11,8 +11,8 @@ pub mod ws;
 
 /// A trait for functions that check if a lexeme accepts a character and if it is in a valid state.
 pub trait Accepter {
-    /// The state produced by the lexeme when it accepts a character.
-    type State;
+    /// The accepter produced by the lexeme when it accepts a character.
+    type Accepter;
 
     /// Check if the current lexeme is acceptable so the parser knows 
     /// that it is in a valid state.
@@ -21,7 +21,7 @@ pub trait Accepter {
     /// Check if the lexeme accepts the next character.
     /// If it does, it returns the new state of the lexeme. 
     /// Otherwise, it returns `None`.
-    fn accept(self, c: char) -> Option<Self::State>;
+    fn accept(self, c: char) -> Option<Self::Accepter>;
 }
 
 /// The state of a lexeme with defines if the current lexeme accept the next character or if it is a valid lexeme.
@@ -38,7 +38,7 @@ pub enum LexemeState {
 }
 
 impl Accepter for LexemeState {
-    type State = Self;
+    type Accepter = Self;
 
     /// Check if the current lexeme accepts the next character.
     /// 

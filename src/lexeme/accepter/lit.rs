@@ -15,7 +15,7 @@ pub enum LitAccepter {
 }
 
 impl Accepter for LitAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
@@ -30,7 +30,7 @@ impl Accepter for LitAccepter {
         }
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         match self {
             Self::IntDec(acp) => acp.accept(c).map(Self::IntDec),
             Self::IntBin(acp) => acp.accept(c).map(Self::IntBin),
@@ -81,7 +81,7 @@ pub enum IntDecAccepter {
 }
 
 impl Accepter for IntDecAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
@@ -130,7 +130,7 @@ pub enum IntBinAccepter {
 }
 
 impl Accepter for IntBinAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Valid
@@ -167,7 +167,7 @@ pub enum IntOctAccepter {
 }
 
 impl Accepter for IntOctAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Valid
@@ -204,7 +204,7 @@ pub enum IntHexAccepter {
 }
 
 impl Accepter for IntHexAccepter {
-    type State = Self;
+    type Accepter = Self;
     
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
@@ -242,7 +242,7 @@ pub enum FltAccepter {
 }
 
 impl Accepter for FltAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
@@ -280,7 +280,7 @@ pub enum CharAccepter {
     
 
 impl Accepter for CharAccepter {
-    type State = Self;
+    type Accepter = Self;
     
     fn acceptable(&self) -> bool {
         *self == Self::Acceptable
@@ -349,7 +349,7 @@ pub enum AtomAccepter {
 }
 
 impl Accepter for AtomAccepter {
-    type State = Self;
+    type Accepter = Self;
     
     fn acceptable(&self) -> bool {
         *self == Self::WaitingAlphaNumDash

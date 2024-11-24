@@ -13,7 +13,7 @@ pub enum KwAccepter {
 }
 
 impl Accepter for KwAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
@@ -28,7 +28,7 @@ impl Accepter for KwAccepter {
         }
     }
 
-    fn accept(self, c: char) -> Option<Self::State> {
+    fn accept(self, c: char) -> Option<Self::Accepter> {
         match self {
             Self::Val(acp) => acp.accept(c).map(Self::Val),
             Self::Fn(acp) => acp.accept(c).map(Self::Fn),
@@ -67,7 +67,7 @@ pub enum ValAccepter {
 }
 
 impl Accepter for ValAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Val
@@ -92,7 +92,7 @@ pub enum FnAccepter {
 }
 
 impl Accepter for FnAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Fn
@@ -118,7 +118,7 @@ pub enum TypeAccepter {
 }
 
 impl Accepter for TypeAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Type
@@ -145,7 +145,7 @@ pub enum TagAccepter {
 }
 
 impl Accepter for TagAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Tag
@@ -172,7 +172,7 @@ pub enum MainAccepter {
 }
 
 impl Accepter for MainAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Main
@@ -201,7 +201,7 @@ pub enum MacroAccepter {
 }
 
 impl Accepter for MacroAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Macro
@@ -232,7 +232,7 @@ pub enum ImportAccepter {
 }
 
 impl Accepter for ImportAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Import
@@ -264,7 +264,7 @@ pub enum ObjectAccepter {
 }
 
 impl Accepter for ObjectAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         *self == Self::Object

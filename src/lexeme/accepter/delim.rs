@@ -24,7 +24,7 @@ pub enum DelimAccepter {
 }
 
 impl Accepter for DelimAccepter {
-    type State = Self;
+    type Accepter = Self;
 
     fn acceptable(&self) -> bool {
         match self {
