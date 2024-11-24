@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use kind::LexemeKind;
 
-pub mod state;
+pub mod accepter;
 pub mod kind;
 
 /// A lexeme in the source code.

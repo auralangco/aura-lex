@@ -1,13 +1,13 @@
 use super::Accepter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum WhitespaceState {
+pub enum WhitespaceAccepter {
     #[default]
     Unset,
     Acceptable,
 }
 
-impl Accepter for WhitespaceState {
+impl Accepter for WhitespaceAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {

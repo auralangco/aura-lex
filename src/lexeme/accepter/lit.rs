@@ -1,67 +1,67 @@
 use super::Accepter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LitState {
+pub enum LitAccepter {
     /// The lexeme to accept a `int` literal.
     /// Regex: (0|[1-9][0-9_]*)(U|I)(8|16|32|64)?"
-    IntDec(IntDecState),
-    IntBin(IntBinState),
-    IntOct(IntOctState),
-    IntHex(IntHexState),
-    Flt(FltState),
-    Chr(CharState),
-    Str(StrState),
-    Atom(AtomState),
+    IntDec(IntDecAccepter),
+    IntBin(IntBinAccepter),
+    IntOct(IntOctAccepter),
+    IntHex(IntHexAccepter),
+    Flt(FltAccepter),
+    Chr(CharAccepter),
+    Str(StrAccepter),
+    Atom(AtomAccepter),
 }
 
-impl Accepter for LitState {
+impl Accepter for LitAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
         match self {
-            Self::IntDec(state) => state.acceptable(),
-            Self::IntBin(state) => state.acceptable(),
-            Self::IntOct(state) => state.acceptable(),
-            Self::IntHex(state) => state.acceptable(),
-            Self::Flt(state) => state.acceptable(),
-            Self::Chr(state) => state.acceptable(),
-            Self::Str(state) => state.acceptable(),
-            Self::Atom(state) => state.acceptable(),
+            Self::IntDec(acp) => acp.acceptable(),
+            Self::IntBin(acp) => acp.acceptable(),
+            Self::IntOct(acp) => acp.acceptable(),
+            Self::IntHex(acp) => acp.acceptable(),
+            Self::Flt(acp) => acp.acceptable(),
+            Self::Chr(acp) => acp.acceptable(),
+            Self::Str(acp) => acp.acceptable(),
+            Self::Atom(acp) => acp.acceptable(),
         }
     }
 
     fn accept(self, c: char) -> Option<Self::State> {
         match self {
-            Self::IntDec(state) => state.accept(c).map(Self::IntDec),
-            Self::IntBin(state) => state.accept(c).map(Self::IntBin),
-            Self::IntOct(state) => state.accept(c).map(Self::IntOct),
-            Self::IntHex(state) => state.accept(c).map(Self::IntHex),
-            Self::Flt(state) => state.accept(c).map(Self::Flt),
-            Self::Chr(state) => state.accept(c).map(Self::Chr),
-            Self::Str(state) => state.accept(c).map(Self::Str),
-            Self::Atom(state) => state.accept(c).map(Self::Atom),
+            Self::IntDec(acp) => acp.accept(c).map(Self::IntDec),
+            Self::IntBin(acp) => acp.accept(c).map(Self::IntBin),
+            Self::IntOct(acp) => acp.accept(c).map(Self::IntOct),
+            Self::IntHex(acp) => acp.accept(c).map(Self::IntHex),
+            Self::Flt(acp) => acp.accept(c).map(Self::Flt),
+            Self::Chr(acp) => acp.accept(c).map(Self::Chr),
+            Self::Str(acp) => acp.accept(c).map(Self::Str),
+            Self::Atom(acp) => acp.accept(c).map(Self::Atom),
         }
     }
 }
 
-impl LitState {
+impl LitAccepter {
     pub fn stream() -> Vec<Self> {
-        use LitState::*;
+        use LitAccepter::*;
         vec![
-            IntDec(IntDecState::default()),
-            IntBin(IntBinState::default()),
-            IntOct(IntOctState::default()),
-            IntHex(IntHexState::default()),
-            Flt(FltState::default()),
-            Chr(CharState::default()),
-            Str(StrState::default()),
-            Atom(AtomState::default()),
+            IntDec(IntDecAccepter::default()),
+            IntBin(IntBinAccepter::default()),
+            IntOct(IntOctAccepter::default()),
+            IntHex(IntHexAccepter::default()),
+            Flt(FltAccepter::default()),
+            Chr(CharAccepter::default()),
+            Str(StrAccepter::default()),
+            Atom(AtomAccepter::default()),
         ]
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum IntDecState {
+pub enum IntDecAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -80,15 +80,17 @@ pub enum IntDecState {
     WithBitWidth(u8),
 }
 
-impl IntDecState {
-    pub fn acceptable(self) -> bool {
+impl Accepter for IntDecAccepter {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
         match self {
             Self::LeadingZero | Self::LeadingNonZero | Self::WithBitWidth(8) | Self::WithBitWidth(16) | Self::WithBitWidth(32) | Self::WithBitWidth(64) => true,
             _ => false,
         }
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
             Self::Unset if c.is_digit(10) && c != '0' => Some(Self::LeadingNonZero),
@@ -110,7 +112,7 @@ impl IntDecState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum IntBinState {
+pub enum IntBinAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -127,12 +129,14 @@ pub enum IntBinState {
     Valid,
 }
 
-impl IntBinState {
-    pub fn acceptable(self) -> bool {
-        self == Self::Valid
+impl Accepter for IntBinAccepter {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
+        *self == Self::Valid
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
             Self::LeadingZero if c == 'b' => Some(Self::Leading0b),
@@ -145,7 +149,7 @@ impl IntBinState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum IntOctState {
+pub enum IntOctAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -162,12 +166,14 @@ pub enum IntOctState {
     Valid,
 }
 
-impl IntOctState {
-    pub fn acceptable(self) -> bool {
-        self == Self::Valid
+impl Accepter for IntOctAccepter {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
+        *self == Self::Valid
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
             Self::LeadingZero if c == 'o' => Some(Self::Leading0o),
@@ -180,7 +186,7 @@ impl IntOctState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum IntHexState {
+pub enum IntHexAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -197,12 +203,14 @@ pub enum IntHexState {
     Acceptable,
 }
 
-impl IntHexState {
-    pub fn acceptable(self) -> bool {
-        self == Self::Acceptable
+impl Accepter for IntHexAccepter {
+    type State = Self;
+    
+    fn acceptable(&self) -> bool {
+        *self == Self::Acceptable
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
             Self::LeadingZero if c == 'x' => Some(Self::Leading0x),
@@ -215,7 +223,7 @@ impl IntHexState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum FltState {
+pub enum FltAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -233,12 +241,14 @@ pub enum FltState {
     Acceptable,
 }
 
-impl FltState {
-    pub fn acceptable(self) -> bool {
-        self == Self::Acceptable
+impl Accepter for FltAccepter {
+    type State = Self;
+
+    fn acceptable(&self) -> bool {
+        *self == Self::Acceptable
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '0' => Some(Self::LeadingZero),
             Self::Unset if c.is_digit(10) && c != '0' => Some(Self::LeadingNonZero),
@@ -254,7 +264,7 @@ impl FltState {
 
 // TODO: Implement escape sequences and symbols
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum CharState {
+pub enum CharAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -269,12 +279,14 @@ pub enum CharState {
 }
     
 
-impl CharState {
-    pub fn acceptable(self) -> bool {
-        self == Self::Acceptable
+impl Accepter for CharAccepter {
+    type State = Self;
+    
+    fn acceptable(&self) -> bool {
+        *self == Self::Acceptable
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '\'' => Some(Self::LeadingSingleQuote),
             Self::LeadingSingleQuote if c.is_ascii_alphanumeric() || c.is_ascii_punctuation() || c == ' ' => Some(Self::SingleChar),
@@ -285,7 +297,7 @@ impl CharState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum StrState {
+pub enum StrAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -302,7 +314,7 @@ pub enum StrState {
     Acceptable,
 }
 
-impl StrState {
+impl StrAccepter {
     pub fn acceptable(self) -> bool {
         self == Self::Acceptable
     }
@@ -311,7 +323,7 @@ impl StrState {
         match self {
             Self::Unset if c == '"' => Some(Self::LeadingDoubleQuote),
             Self::LeadingDoubleQuote if c != '\\' => Some(Self::Any),
-            state if c == '\\' && state != Self::EscapeNext => Some(Self::EscapeNext),
+            acp if c == '\\' && acp != Self::EscapeNext => Some(Self::EscapeNext),
             Self::Any if c != '"' => Some(Self::Any),
             Self::Any if c == '"' => Some(Self::Acceptable),
             Self::EscapeNext => Some(Self::Any),
@@ -321,7 +333,7 @@ impl StrState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum AtomState {
+pub enum AtomAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -336,12 +348,14 @@ pub enum AtomState {
     WaitingAlphaNumDash,
 }
 
-impl AtomState {
-    pub fn acceptable(self) -> bool {
-        self == Self::WaitingAlphaNumDash
+impl Accepter for AtomAccepter {
+    type State = Self;
+    
+    fn acceptable(&self) -> bool {
+        *self == Self::WaitingAlphaNumDash
     }
 
-    pub fn accept(self, c: char) -> Option<Self> {
+    fn accept(self, c: char) -> Option<Self> {
         match self {
             Self::Unset if c == '\'' => Some(Self::WaitingLeadingAlpha),
             Self::WaitingLeadingAlpha | Self::WaitingAlpha if c.is_ascii_lowercase() => Some(Self::WaitingAlphaNumDash),
@@ -358,17 +372,17 @@ mod tests {
     fn lex_string() {
         use super::*;
 
-        let mut state = StrState::default();
-        assert_eq!(state, StrState::Unset);
-        assert_eq!(state.acceptable(), false);
-        state = state.accept('"').unwrap();
-        assert_eq!(state.acceptable(), false);
-        state = state.accept('a').unwrap();
-        assert_eq!(state.acceptable(), false);
-        state = state.accept('b').unwrap();
-        assert_eq!(state.acceptable(), false);
-        state = state.accept('"').unwrap();
-        assert_eq!(state.acceptable(), true);
-        assert_eq!(state.accept('c'), None);
+        let mut acp = StrAccepter::default();
+        assert_eq!(acp, StrAccepter::Unset);
+        assert_eq!(acp.acceptable(), false);
+        acp = acp.accept('"').unwrap();
+        assert_eq!(acp.acceptable(), false);
+        acp = acp.accept('a').unwrap();
+        assert_eq!(acp.acceptable(), false);
+        acp = acp.accept('b').unwrap();
+        assert_eq!(acp.acceptable(), false);
+        acp = acp.accept('"').unwrap();
+        assert_eq!(acp.acceptable(), true);
+        assert_eq!(acp.accept('c'), None);
     }
 }

@@ -1,64 +1,64 @@
 use super::Accepter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KwState {
-    Val(ValState),
-    Fn(FnState),
-    Type(TypeState),
-    Tag(TagState),
-    Main(MainState),
-    Macro(MacroState),
-    Import(ImportState),
-    Object(ObjectState),
+pub enum KwAccepter {
+    Val(ValAccepter),
+    Fn(FnAccepter),
+    Type(TypeAccepter),
+    Tag(TagAccepter),
+    Main(MainAccepter),
+    Macro(MacroAccepter),
+    Import(ImportAccepter),
+    Object(ObjectAccepter),
 }
 
-impl Accepter for KwState {
+impl Accepter for KwAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
         match self {
-            Self::Val(state) => state.acceptable(),
-            Self::Fn(state) => state.acceptable(),
-            Self::Type(state) => state.acceptable(),
-            Self::Tag(state) => state.acceptable(),
-            Self::Main(state) => state.acceptable(),
-            Self::Macro(state) => state.acceptable(),
-            Self::Import(state) => state.acceptable(),
-            Self::Object(state) => state.acceptable(),
+            Self::Val(acp) => acp.acceptable(),
+            Self::Fn(acp) => acp.acceptable(),
+            Self::Type(acp) => acp.acceptable(),
+            Self::Tag(acp) => acp.acceptable(),
+            Self::Main(acp) => acp.acceptable(),
+            Self::Macro(acp) => acp.acceptable(),
+            Self::Import(acp) => acp.acceptable(),
+            Self::Object(acp) => acp.acceptable(),
         }
     }
 
     fn accept(self, c: char) -> Option<Self::State> {
         match self {
-            Self::Val(state) => state.accept(c).map(Self::Val),
-            Self::Fn(state) => state.accept(c).map(Self::Fn),
-            Self::Type(state) => state.accept(c).map(Self::Type),
-            Self::Tag(state) => state.accept(c).map(Self::Tag),
-            Self::Main(state) => state.accept(c).map(Self::Main),
-            Self::Macro(state) => state.accept(c).map(Self::Macro),
-            Self::Import(state) => state.accept(c).map(Self::Import),
-            Self::Object(state) => state.accept(c).map(Self::Object),
+            Self::Val(acp) => acp.accept(c).map(Self::Val),
+            Self::Fn(acp) => acp.accept(c).map(Self::Fn),
+            Self::Type(acp) => acp.accept(c).map(Self::Type),
+            Self::Tag(acp) => acp.accept(c).map(Self::Tag),
+            Self::Main(acp) => acp.accept(c).map(Self::Main),
+            Self::Macro(acp) => acp.accept(c).map(Self::Macro),
+            Self::Import(acp) => acp.accept(c).map(Self::Import),
+            Self::Object(acp) => acp.accept(c).map(Self::Object),
         }
     }
 }
-impl KwState {
+impl KwAccepter {
     pub fn stream() -> Vec<Self> {
-        use KwState::*;
+        use KwAccepter::*;
         vec![
-            Val(ValState::default()),
-            Fn(FnState::default()),
-            Type(TypeState::default()),
-            Tag(TagState::default()),
-            Main(MainState::default()),
-            Macro(MacroState::default()),
-            Import(ImportState::default()),
-            Object(ObjectState::default()),
+            Val(ValAccepter::default()),
+            Fn(FnAccepter::default()),
+            Type(TypeAccepter::default()),
+            Tag(TagAccepter::default()),
+            Main(MainAccepter::default()),
+            Macro(MacroAccepter::default()),
+            Import(ImportAccepter::default()),
+            Object(ObjectAccepter::default()),
         ]
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ValState {
+pub enum ValAccepter {
     #[default]
     Unset,
     V,
@@ -66,7 +66,7 @@ pub enum ValState {
     Val,
 }
 
-impl Accepter for ValState {
+impl Accepter for ValAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -84,14 +84,14 @@ impl Accepter for ValState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum FnState {
+pub enum FnAccepter {
     #[default]
     Unset,
     F,
     Fn,
 }
 
-impl Accepter for FnState {
+impl Accepter for FnAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -108,7 +108,7 @@ impl Accepter for FnState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum TypeState {
+pub enum TypeAccepter {
     #[default]
     Unset,
     T,
@@ -117,7 +117,7 @@ pub enum TypeState {
     Type,
 }
 
-impl Accepter for TypeState {
+impl Accepter for TypeAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -136,7 +136,7 @@ impl Accepter for TypeState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum TagState {
+pub enum TagAccepter {
     #[default]
     Unset,
     T,
@@ -144,7 +144,7 @@ pub enum TagState {
     Tag,
 }
 
-impl Accepter for TagState {
+impl Accepter for TagAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -162,7 +162,7 @@ impl Accepter for TagState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum MainState {
+pub enum MainAccepter {
     #[default]
     Unset,
     M,
@@ -171,7 +171,7 @@ pub enum MainState {
     Main,
 }
 
-impl Accepter for MainState {
+impl Accepter for MainAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -190,7 +190,7 @@ impl Accepter for MainState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum MacroState {
+pub enum MacroAccepter {
     #[default]
     Unset,
     M,
@@ -200,7 +200,7 @@ pub enum MacroState {
     Macro,
 }
 
-impl Accepter for MacroState {
+impl Accepter for MacroAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -220,7 +220,7 @@ impl Accepter for MacroState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ImportState {
+pub enum ImportAccepter {
     #[default]
     Unset,
     I,
@@ -231,7 +231,7 @@ pub enum ImportState {
     Import,
 }
 
-impl Accepter for ImportState {
+impl Accepter for ImportAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -252,7 +252,7 @@ impl Accepter for ImportState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ObjectState {
+pub enum ObjectAccepter {
     #[default]
     Unset,
     O,
@@ -263,7 +263,7 @@ pub enum ObjectState {
     Object,
 }
 
-impl Accepter for ObjectState {
+impl Accepter for ObjectAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {

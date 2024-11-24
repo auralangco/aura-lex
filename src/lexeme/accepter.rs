@@ -23,42 +23,17 @@ pub trait Accepter {
     fn accept(self, c: char) -> Option<Self::State>;
 }
 
-/// A generic state for lexemes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum BasicState {
-    #[default]
-    /// The lexeme hasn't started yet
-    Unset,
-    /// The lexeme is acceptable
-    Acceptable,
-}
-
-impl Accepter for BasicState {
-    type State = Self;
-
-    fn acceptable(&self) -> bool {
-        *self == Self::Acceptable
-    }
-
-    fn accept(self, _: char) -> Option<Self> {
-        match self {
-            Self::Unset => Some(Self::Acceptable),
-            _ => None,
-        }
-    }
-}
-
 /// The state of a lexeme with defines if the current lexeme accept the next character or if it is a valid lexeme.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LexemeState {
-    Kw(kw::KwState),
-    Ident(ident::IdentState),
-    Op(op::OpState),
-    Delim(delim::DelimState),
-    Lit(lit::LitState),
+    Kw(kw::KwAccepter),
+    Ident(ident::IdentAccepter),
+    Op(op::OpAccepter),
+    Delim(delim::DelimAccepter),
+    Lit(lit::LitAccepter),
     Pt(pt::PtState),
-    Ws(ws::WhitespaceState),
-    Comment(comment::CommentState),
+    Ws(ws::WhitespaceAccepter),
+    Comment(comment::CommentAccepter),
 }
 
 impl Accepter for LexemeState {
@@ -100,14 +75,14 @@ impl LexemeState {
     pub fn stream() -> Vec<Self> {
         use LexemeState::*;
         vec![
-            kw::KwState::stream().into_iter().map(Kw).collect::<Vec<Self>>(),
-            ident::IdentState::stream().into_iter().map(Ident).collect::<Vec<Self>>(),
-            op::OpState::stream().into_iter().map(Op).collect::<Vec<Self>>(),
-            delim::DelimState::stream().into_iter().map(Delim).collect::<Vec<Self>>(),
-            lit::LitState::stream().into_iter().map(Lit).collect::<Vec<Self>>(),
+            kw::KwAccepter::stream().into_iter().map(Kw).collect::<Vec<Self>>(),
+            ident::IdentAccepter::stream().into_iter().map(Ident).collect::<Vec<Self>>(),
+            op::OpAccepter::stream().into_iter().map(Op).collect::<Vec<Self>>(),
+            delim::DelimAccepter::stream().into_iter().map(Delim).collect::<Vec<Self>>(),
+            lit::LitAccepter::stream().into_iter().map(Lit).collect::<Vec<Self>>(),
             pt::PtState::stream().into_iter().map(Pt).collect::<Vec<Self>>(),
-            vec![Ws(ws::WhitespaceState::default())],
-            comment::CommentState::stream().into_iter().map(Comment).collect::<Vec<Self>>(),
+            vec![Ws(ws::WhitespaceAccepter::default())],
+            comment::CommentAccepter::stream().into_iter().map(Comment).collect::<Vec<Self>>(),
         ]
         .into_iter()
         .flatten()
@@ -117,7 +92,7 @@ impl LexemeState {
 
 #[cfg(test)]
 mod tests {
-    use crate::lexeme::state::Accepter;
+    use crate::lexeme::accepter::{op, Accepter};
 
     #[test]
     fn stream_check() {
@@ -135,6 +110,6 @@ mod tests {
         }
         assert_eq!(stream.len(), 1);
         assert!(stream[0].acceptable());
-        assert_eq!(stream[0], LexemeState::Op(super::op::OpState::CRange(super::op::TripleCharOpState::Third)));
+        assert_eq!(stream[0], LexemeState::Op(op::OpAccepter::CRange(op::TripleCharOpState::Third)));
     }
 }

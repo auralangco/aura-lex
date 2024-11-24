@@ -1,12 +1,12 @@
 use super::Accepter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CommentState {
-    Line(LineState),
-    Block(BlockState),
+pub enum CommentAccepter {
+    Line(LineCommentAccepter),
+    Block(BlockCommentAccepter),
 }
 
-impl Accepter for CommentState {
+impl Accepter for CommentAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -24,25 +24,25 @@ impl Accepter for CommentState {
     }
 }
 
-impl CommentState {
+impl CommentAccepter {
     pub fn stream() -> Vec<Self> {
-        use CommentState::*;
+        use CommentAccepter::*;
         vec![
-            Line(LineState::default()),
-            Block(BlockState::default()),
+            Line(LineCommentAccepter::default()),
+            Block(BlockCommentAccepter::default()),
         ]
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum LineState {
+pub enum LineCommentAccepter {
     #[default]
     Unset,
     FirstSlash,
     Acceptable,
 }
 
-impl Accepter for LineState {
+impl Accepter for LineCommentAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -60,7 +60,7 @@ impl Accepter for LineState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum BlockState {
+pub enum BlockCommentAccepter {
     #[default]
     Unset,
     FirstSlash,
@@ -70,7 +70,7 @@ pub enum BlockState {
     Acceptable,
 }
 
-impl Accepter for BlockState {
+impl Accepter for BlockCommentAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {

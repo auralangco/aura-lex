@@ -3,70 +3,70 @@ use super::Accepter;
 const GT: char = '>';
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OpState {
+pub enum OpAccepter {
     /// The lexeme to accept a `:=` operator.
-    Decl(DoubleCharOpState<':', '='>),
+    Decl(DoubleCharAccepter<':', '='>),
     /// The lexeme to accept a `=` operator.
-    Eq(SingleCharOpState<'='>),
+    Eq(SingleCharAccepter<'='>),
     /// The lexeme to accept a `+` operator.
-    Plus(SingleCharOpState<'+'>),
+    Plus(SingleCharAccepter<'+'>),
     /// The lexeme to accept a `-` operator.
-    Minus(SingleCharOpState<'-'>),
+    Minus(SingleCharAccepter<'-'>),
     /// The lexeme to accept a `*` operator.
-    Star(SingleCharOpState<'*'>),
+    Star(SingleCharAccepter<'*'>),
     /// The lexeme to accept a `/` operator.
-    Slash(SingleCharOpState<'/'>),
+    Slash(SingleCharAccepter<'/'>),
     /// The lexeme to accept a `^` operator.
-    Caret(SingleCharOpState<'^'>),
+    Caret(SingleCharAccepter<'^'>),
     /// The lexeme to accept a `_` operator.
-    UScore(SingleCharOpState<'_'>),
+    UScore(SingleCharAccepter<'_'>),
     /// The lexeme to accept a `%` operator.
-    Percent(SingleCharOpState<'%'>),
+    Percent(SingleCharAccepter<'%'>),
     /// The lexeme to accept a `&` operator.
-    And(SingleCharOpState<'&'>),
+    And(SingleCharAccepter<'&'>),
     /// The lexeme to accept a `&&` operator.
-    AndAnd(DoubleCharOpState<'&', '&'>),
+    AndAnd(DoubleCharAccepter<'&', '&'>),
     /// The lexeme to accept a `|` operator.
-    Or(SingleCharOpState<'|'>),
+    Or(SingleCharAccepter<'|'>),
     /// The lexeme to accept a `||` operator.
-    OrOr(DoubleCharOpState<'|', '|'>),
+    OrOr(DoubleCharAccepter<'|', '|'>),
     /// The lexeme to accept a `!` operator.
-    Not(SingleCharOpState<'!'>),
+    Not(SingleCharAccepter<'!'>),
     /// The lexeme to accept a `!=` operator.
-    NotEq(DoubleCharOpState<'!', '='>),
+    NotEq(DoubleCharAccepter<'!', '='>),
     /// The lexeme to accept a `==` operator.
-    EqEq(DoubleCharOpState<'=', '='>),
+    EqEq(DoubleCharAccepter<'=', '='>),
     /// The lexeme to accept a `>` operator.
-    Gt(SingleCharOpState<GT>),
+    Gt(SingleCharAccepter<GT>),
     /// The lexeme to accept a `>=` operator.
-    GtEq(DoubleCharOpState<GT, '='>),
+    GtEq(DoubleCharAccepter<GT, '='>),
     /// The lexeme to accept a `<` operator.
-    Lt(SingleCharOpState<'<'>),
+    Lt(SingleCharAccepter<'<'>),
     /// The lexeme to accept a `<=` operator.
-    LtEq(DoubleCharOpState<'<', '='>),
+    LtEq(DoubleCharAccepter<'<', '='>),
     /// The lexeme to accept a `<<` operator.
-    LtLt(DoubleCharOpState<'<', '<'>),
+    LtLt(DoubleCharAccepter<'<', '<'>),
     /// The lexeme to accept a `>>` operator.
-    GtGt(DoubleCharOpState<GT, GT>),
+    GtGt(DoubleCharAccepter<GT, GT>),
     /// The lexeme to accept a `->` operator.
-    RArw(DoubleCharOpState<'-', GT>),
+    RArw(DoubleCharAccepter<'-', GT>),
     /// The lexeme to accept a `=>` operator.
-    FatRArw(DoubleCharOpState<'=', GT>),
+    FatRArw(DoubleCharAccepter<'=', GT>),
     /// The lexeme to accept a `~` operator.
-    Tilde(SingleCharOpState<'~'>),
+    Tilde(SingleCharAccepter<'~'>),
     /// The lexeme to accept a `::` operator.
-    Join(DoubleCharOpState<':', ':'>),
+    Join(DoubleCharAccepter<':', ':'>),
     /// The lexeme to accept a `\` operator.
-    BSlash(SingleCharOpState<'\\'>),
+    BSlash(SingleCharAccepter<'\\'>),
     /// The lexeme to accept a `..` operator.
-    Range(DoubleCharOpState<'.', '.'>),
+    Range(DoubleCharAccepter<'.', '.'>),
     /// The lexeme to accept a `..=` operator.
     CRange(TripleCharOpState<'.', '.', '='>),
     /// The lexeme to accept a `...` operator.
     Spread(TripleCharOpState<'.', '.', '.'>),
 }
 
-impl Accepter for OpState {
+impl Accepter for OpAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -140,38 +140,38 @@ impl Accepter for OpState {
     }
 }
 
-impl OpState {
+impl OpAccepter {
     pub fn stream() -> Vec<Self> {
-        use OpState::*;
+        use OpAccepter::*;
         vec![
-            Decl(DoubleCharOpState::default()),
-            Eq(SingleCharOpState::default()),
-            Plus(SingleCharOpState::default()),
-            Minus(SingleCharOpState::default()),
-            Star(SingleCharOpState::default()),
-            Slash(SingleCharOpState::default()),
-            Caret(SingleCharOpState::default()),
-            UScore(SingleCharOpState::default()),
-            Percent(SingleCharOpState::default()),
-            And(SingleCharOpState::default()),
-            AndAnd(DoubleCharOpState::default()),
-            Or(SingleCharOpState::default()),
-            OrOr(DoubleCharOpState::default()),
-            Not(SingleCharOpState::default()),
-            NotEq(DoubleCharOpState::default()),
-            EqEq(DoubleCharOpState::default()),
-            Gt(SingleCharOpState::default()),
-            GtEq(DoubleCharOpState::default()),
-            Lt(SingleCharOpState::default()),
-            LtEq(DoubleCharOpState::default()),
-            LtLt(DoubleCharOpState::default()),
-            GtGt(DoubleCharOpState::default()),
-            RArw(DoubleCharOpState::default()),
-            FatRArw(DoubleCharOpState::default()),
-            Tilde(SingleCharOpState::default()),
-            Join(DoubleCharOpState::default()),
-            BSlash(SingleCharOpState::default()),
-            Range(DoubleCharOpState::default()),
+            Decl(DoubleCharAccepter::default()),
+            Eq(SingleCharAccepter::default()),
+            Plus(SingleCharAccepter::default()),
+            Minus(SingleCharAccepter::default()),
+            Star(SingleCharAccepter::default()),
+            Slash(SingleCharAccepter::default()),
+            Caret(SingleCharAccepter::default()),
+            UScore(SingleCharAccepter::default()),
+            Percent(SingleCharAccepter::default()),
+            And(SingleCharAccepter::default()),
+            AndAnd(DoubleCharAccepter::default()),
+            Or(SingleCharAccepter::default()),
+            OrOr(DoubleCharAccepter::default()),
+            Not(SingleCharAccepter::default()),
+            NotEq(DoubleCharAccepter::default()),
+            EqEq(DoubleCharAccepter::default()),
+            Gt(SingleCharAccepter::default()),
+            GtEq(DoubleCharAccepter::default()),
+            Lt(SingleCharAccepter::default()),
+            LtEq(DoubleCharAccepter::default()),
+            LtLt(DoubleCharAccepter::default()),
+            GtGt(DoubleCharAccepter::default()),
+            RArw(DoubleCharAccepter::default()),
+            FatRArw(DoubleCharAccepter::default()),
+            Tilde(SingleCharAccepter::default()),
+            Join(DoubleCharAccepter::default()),
+            BSlash(SingleCharAccepter::default()),
+            Range(DoubleCharAccepter::default()),
             CRange(TripleCharOpState::default()),
             Spread(TripleCharOpState::default()),
         ]
@@ -182,7 +182,7 @@ impl OpState {
 /// A generic state accepter for a single character operator.
 /// 
 /// This state is used by lexemes made of a single character namely `OP`.
-pub enum SingleCharOpState<const OP: char> {
+pub enum SingleCharAccepter<const CH: char> {
     #[default]
     /// The state to accept a single character operator.
     Unset,
@@ -190,7 +190,7 @@ pub enum SingleCharOpState<const OP: char> {
     Set,
 }
 
-impl<const OP: char> Accepter for SingleCharOpState<OP> {
+impl<const CH: char> Accepter for SingleCharAccepter<CH> {
     type State = Self;
     
     fn acceptable(&self) -> bool {
@@ -198,7 +198,7 @@ impl<const OP: char> Accepter for SingleCharOpState<OP> {
     }
 
     fn accept(self, c: char) -> Option<Self::State> {
-        if self == Self::Unset && c == OP {
+        if self == Self::Unset && c == CH {
             Some(Self::Set)
         } else {
             None
@@ -210,7 +210,7 @@ impl<const OP: char> Accepter for SingleCharOpState<OP> {
 /// A generic state accepter for a double character operator.
 /// 
 /// This state is used by lexemes made of a double character namely `OP1 OP2`.
-pub enum DoubleCharOpState<const OP1: char, const OP2: char> {
+pub enum DoubleCharAccepter<const CH1: char, const CH2: char> {
     #[default]
     /// The state to accept a double character operator.
     Unset,
@@ -220,7 +220,7 @@ pub enum DoubleCharOpState<const OP1: char, const OP2: char> {
     Second,
 }
 
-impl<const OP1: char, const OP2: char> Accepter for DoubleCharOpState<OP1, OP2> {
+impl<const CH1: char, const CH2: char> Accepter for DoubleCharAccepter<CH1, CH2> {
     type State = Self;
     
     fn acceptable(&self) -> bool {
@@ -229,8 +229,8 @@ impl<const OP1: char, const OP2: char> Accepter for DoubleCharOpState<OP1, OP2> 
 
     fn accept(self, c: char) -> Option<Self::State> {
         match self {
-            Self::Unset if c == OP1 => Some(Self::First),
-            Self::First if c == OP2 => Some(Self::Second),
+            Self::Unset if c == CH1 => Some(Self::First),
+            Self::First if c == CH2 => Some(Self::Second),
             _ => None,
         }
     }
@@ -240,7 +240,7 @@ impl<const OP1: char, const OP2: char> Accepter for DoubleCharOpState<OP1, OP2> 
 /// A generic state accepter for a triple character operator.
 /// 
 /// This state is used by lexemes made of a triple character namely `OP1 OP2 OP3`.
-pub enum TripleCharOpState<const OP1: char, const OP2: char, const OP3: char> {
+pub enum TripleCharOpState<const CH1: char, const CH2: char, const CH3: char> {
     #[default]
     /// The state to accept a triple character operator.
     Unset,

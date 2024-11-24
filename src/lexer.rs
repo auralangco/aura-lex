@@ -1,4 +1,4 @@
-use crate::{lexeme::{state::{Accepter, LexemeState}, Coord, Lexeme}, LexemeKind};
+use crate::{lexeme::{accepter::{Accepter, LexemeState}, Coord, Lexeme}, LexemeKind};
 
 /// The delimiters in the source code.
 /// Those can be used to separate lexemes.

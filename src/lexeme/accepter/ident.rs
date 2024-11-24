@@ -1,25 +1,25 @@
 use super::Accepter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IdentState {
+pub enum IdentAccepter {
     /// The lexeme to accept a value identifier.
     /// Regex: [a-z][a-z0-9_]+
-    Val(ValState),
+    Val(ValAccepter),
     /// The lexeme to accept a type identifier.
     /// Regex: [A-Z][a-zA-Z0-9]+
-    Type(TypeState),
+    Type(TypeAccepter),
     /// The lexeme to accept a tag identifier.
     /// Regex: #[a-z][a-z0-9]*(-[a-z0-9])*
-    Tag(TagState),
+    Tag(TagAccepter),
     /// The lexeme to accept a macro identifier.
     /// Regex: @([a-z][a-z0-9:]*)+
-    Macro(MacroState),
+    Macro(MacroAccepter),
     /// The lexeme to accept a subtype identifier.
     /// Regex: \$[a-zA-Z][a-zA-Z0-9]+
-    Subtype(SubtypeState),
+    Subtype(SubtypeAccepter),
 }
 
-impl Accepter for IdentState {
+impl Accepter for IdentAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -43,21 +43,21 @@ impl Accepter for IdentState {
     }
 }
 
-impl IdentState {
+impl IdentAccepter {
     pub fn stream() -> Vec<Self> {
-        use IdentState::*;
+        use IdentAccepter::*;
         vec![
-            Val(ValState::default()),
-            Type(TypeState::default()),
-            Tag(TagState::default()),
-            Macro(MacroState::default()),
-            Subtype(SubtypeState::default()),
+            Val(ValAccepter::default()),
+            Type(TypeAccepter::default()),
+            Tag(TagAccepter::default()),
+            Macro(MacroAccepter::default()),
+            Subtype(SubtypeAccepter::default()),
         ]
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ValState {
+pub enum ValAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -65,7 +65,7 @@ pub enum ValState {
     Acceptable,
 }
 
-impl Accepter for ValState {
+impl Accepter for ValAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -82,7 +82,7 @@ impl Accepter for ValState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum TypeState {
+pub enum TypeAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -90,7 +90,7 @@ pub enum TypeState {
     Acceptable,
 }
 
-impl Accepter for TypeState {
+impl Accepter for TypeAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -108,7 +108,7 @@ impl Accepter for TypeState {
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum TagState {
+pub enum TagAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -118,7 +118,7 @@ pub enum TagState {
     WaitingAlphaNumDash,
 }
 
-impl Accepter for TagState {
+impl Accepter for TagAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -137,7 +137,7 @@ impl Accepter for TagState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum MacroState {
+pub enum MacroAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -149,7 +149,7 @@ pub enum MacroState {
     WaitingAlphaNumColon,
 }
 
-impl Accepter for MacroState {
+impl Accepter for MacroAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
@@ -168,7 +168,7 @@ impl Accepter for MacroState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum SubtypeState {
+pub enum SubtypeAccepter {
     #[default]
     /// The lexeme hasn't started yet
     Unset,
@@ -178,7 +178,7 @@ pub enum SubtypeState {
     Any,
 }
 
-impl Accepter for SubtypeState {
+impl Accepter for SubtypeAccepter {
     type State = Self;
 
     fn acceptable(&self) -> bool {
