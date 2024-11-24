@@ -7,7 +7,7 @@ use crate::{lexeme::{state::{Accepter, LexemeState}, Coord, Lexeme}, LexemeKind}
 /// The Aura lexer. It takes a source code string and returns a vector of lexemes groups.
 /// As of now, some lexemes might be ambiguous, so the lexer return all possible lexemes and
 /// the parser will have to disambiguate them using the nearby lexemes.
-pub fn lex<'src>(src: &'src str) -> Vec<Vec<Lexeme<'src>>> {
+pub fn lex<'src>(src: &'src str) -> Vec<Lexeme<'src>> {
     let chars = src.chars().enumerate();
     let mut start = 0;
     let mut start_coord = Coord { line: 1, col: 1 };
@@ -20,7 +20,7 @@ pub fn lex<'src>(src: &'src str) -> Vec<Vec<Lexeme<'src>>> {
         let next_candidates = get_next_candidates(&candidates, c);
 
         if acceptable_candidates_count(&next_candidates) == 0 && acceptable_candidates_count(&candidates) > 0 {
-            lexemes.push(build_lexemes_from_candidates(candidates, src, start, i, start_coord, end_coord));
+            lexemes.push(build_lexeme_from_candidates(candidates, src, start, i, start_coord, end_coord));
 
             candidates = get_next_candidates(&LexemeState::stream(), c);
 
@@ -45,7 +45,7 @@ pub fn lex<'src>(src: &'src str) -> Vec<Vec<Lexeme<'src>>> {
 pub fn remove_ws<'src>(lexemes: Vec<Vec<Lexeme<'src>>>) -> Vec<Vec<Lexeme<'src>>> {
     lexemes.into_iter()
         .map(|group| group.into_iter()
-            .filter(|lexeme| lexeme.kind != LexemeKind::Ws)
+            .filter(|lexeme| lexeme.kind.unambiguous_unchecked() != LexemeKind::Ws)
             .collect())
         .filter(|group: &Vec<Lexeme<'src>>| group.len() > 0)
         .collect()
@@ -55,7 +55,7 @@ pub fn remove_ws<'src>(lexemes: Vec<Vec<Lexeme<'src>>>) -> Vec<Vec<Lexeme<'src>>
 pub fn remove_comments<'src>(lexemes: Vec<Vec<Lexeme<'src>>>) -> Vec<Vec<Lexeme<'src>>> {
     lexemes.into_iter()
         .map(|group| group.into_iter()
-            .filter(|lexeme| lexeme.kind != LexemeKind::CommentLine && lexeme.kind != LexemeKind::CommentBlock)
+            .filter(|lexeme| lexeme.kind.unambiguous_unchecked() != LexemeKind::CommentLine && lexeme.kind.unambiguous_unchecked() != LexemeKind::CommentBlock)
             .collect())
         .filter(|group: &Vec<Lexeme<'src>>| group.len() > 0)
         .collect()
@@ -95,18 +95,28 @@ fn acceptable_candidates_count(candidates: &Vec<LexemeState>) -> usize {
 
 /// Builds lexemes from the candidates in `candidates` and returns them.
 #[cfg(not(feature = "parallel"))]
-fn build_lexemes_from_candidates<'src>(candidates: Vec<LexemeState>, src: &'src str, start: usize, end: usize, start_coord: Coord, end_coord: Coord) -> Vec<Lexeme<'src>> {
-    candidates.into_iter()
+fn build_lexeme_from_candidates<'src>(candidates: Vec<LexemeState>, src: &'src str, start: usize, end: usize, start_coord: Coord, end_coord: Coord) -> Lexeme<'src> {
+    use crate::lexeme::LexemeAmbiguity;
+
+    let states: Vec<_> = candidates.into_iter()
         .filter(|s| s.acceptable())
-        .map(|state| Lexeme { 
-            kind: state.into(), 
-            slice: &src[start..end], 
-            start, 
-            end, 
-            start_coord, 
-            end_coord 
-        })
-        .collect()
+        .collect();
+    
+    let kind = if states.len() == 1 {
+        LexemeAmbiguity::Unambiguous(states[0].into())
+    } else {
+        let (a, b) = (states[0].into(), states[1].into());
+        LexemeAmbiguity::Ambiguous(a, b)
+    };
+
+    Lexeme { 
+        kind, 
+        slice: &src[start..end], 
+        start, 
+        end, 
+        start_coord, 
+        end_coord 
+    }
 }
 
 /// Builds lexemes from the candidates in `candidates` in parallel and returns them.
@@ -182,132 +192,70 @@ mod tests {
         "#;
         let lexemes = lex(src);
         
-        for (i, lexeme) in lexemes.iter().enumerate() {
-            println!("Lexeme group {}", i);
-            for l in lexeme {
-                println!("{:?}", l);
-            }
-        }
         assert_eq!(lexemes.len(), 77);
-        assert_eq!(lexemes[0].len(), 2);
-        assert_eq!(lexemes[0][0].kind, LexemeKind::KwVal);
-        assert_eq!(lexemes[0][0].slice, "val");
-        assert_eq!(lexemes[0][1].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[0][1].slice, "val");
-        assert_eq!(lexemes[1].len(), 1);
-        assert_eq!(lexemes[1][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[2].len(), 1);
-        assert_eq!(lexemes[2][0].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[2][0].slice, "x");
-        assert_eq!(lexemes[3].len(), 1);
-        assert_eq!(lexemes[3][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[4].len(), 1);
-        assert_eq!(lexemes[4][0].kind, LexemeKind::OpDecl);
-        assert_eq!(lexemes[5].len(), 1);
-        assert_eq!(lexemes[5][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[6].len(), 1);
-        assert_eq!(lexemes[6][0].kind, LexemeKind::LitIntDec);
-        assert_eq!(lexemes[6][0].slice, "10");
-        assert_eq!(lexemes[7].len(), 1);
-        assert_eq!(lexemes[7][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[8].len(), 2);
-        assert_eq!(lexemes[8][0].kind, LexemeKind::KwVal);
-        assert_eq!(lexemes[8][0].slice, "val");
-        assert_eq!(lexemes[8][1].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[8][1].slice, "val");
-        assert_eq!(lexemes[9].len(), 1);
-        assert_eq!(lexemes[9][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[10].len(), 1);
-        assert_eq!(lexemes[10][0].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[10][0].slice, "name");
-        assert_eq!(lexemes[11].len(), 1);
-        assert_eq!(lexemes[11][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[12].len(), 1);
-        assert_eq!(lexemes[12][0].kind, LexemeKind::OpDecl);
-        assert_eq!(lexemes[13].len(), 1);
-        assert_eq!(lexemes[13][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[14].len(), 1);
-        assert_eq!(lexemes[14][0].kind, LexemeKind::LitStr);
-        assert_eq!(lexemes[14][0].slice, "\"John Doe\"");
-        assert_eq!(lexemes[15].len(), 1);
-        assert_eq!(lexemes[15][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[16].len(), 2);
-        assert_eq!(lexemes[16][0].kind, LexemeKind::KwType);
-        assert_eq!(lexemes[16][0].slice, "type");
-        assert_eq!(lexemes[16][1].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[16][1].slice, "type");
-        assert_eq!(lexemes[17].len(), 1);
-        assert_eq!(lexemes[17][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[18].len(), 1);
-        assert_eq!(lexemes[18][0].kind, LexemeKind::IdentType);
-        assert_eq!(lexemes[18][0].slice, "Person");
-        assert_eq!(lexemes[19].len(), 1);
-        assert_eq!(lexemes[19][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[20].len(), 1);
-        assert_eq!(lexemes[20][0].kind, LexemeKind::OpDecl);
-        assert_eq!(lexemes[21].len(), 1);
-        assert_eq!(lexemes[21][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[22].len(), 1);
-        assert_eq!(lexemes[22][0].kind, LexemeKind::IdentMacro);
-        assert_eq!(lexemes[22][0].slice, "@enum");
-        assert_eq!(lexemes[23].len(), 1);
-        assert_eq!(lexemes[23][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[24].len(), 1);
-        assert_eq!(lexemes[24][0].kind, LexemeKind::DelimOParen);
-        assert_eq!(lexemes[25].len(), 1);
-        assert_eq!(lexemes[25][0].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[25][0].slice, "name");
-        assert_eq!(lexemes[26].len(), 1);
-        assert_eq!(lexemes[26][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[27].len(), 1);
-        assert_eq!(lexemes[27][0].kind, LexemeKind::IdentType);
-        assert_eq!(lexemes[27][0].slice, "String");
-        assert_eq!(lexemes[28].len(), 1);
-        assert_eq!(lexemes[28][0].kind, LexemeKind::PtComma);
-        assert_eq!(lexemes[29].len(), 1);
-        assert_eq!(lexemes[29][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[30].len(), 1);
-        assert_eq!(lexemes[30][0].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[30][0].slice, "full_name");
-        assert_eq!(lexemes[31].len(), 1);
-        assert_eq!(lexemes[31][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[32].len(), 1);
-        assert_eq!(lexemes[32][0].kind, LexemeKind::DelimOParen);
-        assert_eq!(lexemes[33].len(), 1);
-        assert_eq!(lexemes[33][0].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[33][0].slice, "first");
-        assert_eq!(lexemes[34].len(), 1);
-        assert_eq!(lexemes[34][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[35].len(), 1);
-        assert_eq!(lexemes[35][0].kind, LexemeKind::IdentType);
-        assert_eq!(lexemes[35][0].slice, "String");
-        assert_eq!(lexemes[36].len(), 1);
-        assert_eq!(lexemes[36][0].kind, LexemeKind::PtComma);
-        assert_eq!(lexemes[37].len(), 1);
-        assert_eq!(lexemes[37][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[38].len(), 1);
-        assert_eq!(lexemes[38][0].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[38][0].slice, "last");
-        assert_eq!(lexemes[39].len(), 1);
-        assert_eq!(lexemes[39][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[40].len(), 1);
-        assert_eq!(lexemes[40][0].kind, LexemeKind::IdentType);
-        assert_eq!(lexemes[40][0].slice, "String");
-        assert_eq!(lexemes[41].len(), 1);
-        assert_eq!(lexemes[41][0].kind, LexemeKind::DelimCParen);
-        assert_eq!(lexemes[42].len(), 1);
-        assert_eq!(lexemes[42][0].kind, LexemeKind::DelimCParen);
-        assert_eq!(lexemes[43].len(), 1);
-        assert_eq!(lexemes[43][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[44].len(), 2);
-        assert_eq!(lexemes[44][0].kind, LexemeKind::KwMain);
-        assert_eq!(lexemes[44][0].slice, "main");
-        assert_eq!(lexemes[44][1].kind, LexemeKind::IdentVal);
-        assert_eq!(lexemes[44][1].slice, "main");
-        assert_eq!(lexemes[45].len(), 1);
-        assert_eq!(lexemes[45][0].kind, LexemeKind::Ws);
-        assert_eq!(lexemes[46].len(), 1);
-        assert_eq!(lexemes[46][0].kind, LexemeKind::OpRArw);
-
+        assert_eq!(lexemes[0].kind.ambiguous_unchecked(), (LexemeKind::KwVal, LexemeKind::IdentVal));
+        assert_eq!(lexemes[0].slice, "val");
+        assert_eq!(lexemes[1].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[2].kind.unambiguous_unchecked(), LexemeKind::IdentVal);
+        assert_eq!(lexemes[2].slice, "x");
+        assert_eq!(lexemes[3].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[4].kind.unambiguous_unchecked(), LexemeKind::OpDecl);
+        assert_eq!(lexemes[5].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[6].kind.unambiguous_unchecked(), LexemeKind::LitIntDec);
+        assert_eq!(lexemes[6].slice, "10");
+        assert_eq!(lexemes[7].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[8].kind.ambiguous_unchecked(), (LexemeKind::KwVal, LexemeKind::IdentVal));
+        assert_eq!(lexemes[8].slice, "val");
+        assert_eq!(lexemes[9].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[10].kind.unambiguous_unchecked(), LexemeKind::IdentVal);
+        assert_eq!(lexemes[10].slice, "name");
+        assert_eq!(lexemes[11].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[12].kind.unambiguous_unchecked(), LexemeKind::OpDecl);
+        assert_eq!(lexemes[13].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[14].kind.unambiguous_unchecked(), LexemeKind::LitStr);
+        assert_eq!(lexemes[14].slice, "\"John Doe\"");
+        assert_eq!(lexemes[15].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[16].kind.ambiguous_unchecked(), (LexemeKind::KwType, LexemeKind::IdentVal));
+        assert_eq!(lexemes[16].slice, "type");
+        assert_eq!(lexemes[17].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[18].kind.unambiguous_unchecked(), LexemeKind::IdentType);
+        assert_eq!(lexemes[18].slice, "Person");
+        assert_eq!(lexemes[19].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[20].kind.unambiguous_unchecked(), LexemeKind::OpDecl);
+        assert_eq!(lexemes[21].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[22].kind.unambiguous_unchecked(), LexemeKind::IdentMacro);
+        assert_eq!(lexemes[22].slice, "@enum");
+        assert_eq!(lexemes[23].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[24].kind.unambiguous_unchecked(), LexemeKind::DelimOParen);
+        assert_eq!(lexemes[25].kind.unambiguous_unchecked(), LexemeKind::IdentVal);
+        assert_eq!(lexemes[25].slice, "name");
+        assert_eq!(lexemes[26].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[27].kind.unambiguous_unchecked(), LexemeKind::IdentType);
+        assert_eq!(lexemes[27].slice, "String");
+        assert_eq!(lexemes[28].kind.unambiguous_unchecked(), LexemeKind::PtComma);
+        assert_eq!(lexemes[29].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[30].kind.unambiguous_unchecked(), LexemeKind::IdentVal);
+        assert_eq!(lexemes[30].slice, "full_name");
+        assert_eq!(lexemes[31].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[32].kind.unambiguous_unchecked(), LexemeKind::DelimOParen);
+        assert_eq!(lexemes[33].kind.unambiguous_unchecked(), LexemeKind::IdentVal);
+        assert_eq!(lexemes[33].slice, "first");
+        assert_eq!(lexemes[34].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[35].kind.unambiguous_unchecked(), LexemeKind::IdentType);
+        assert_eq!(lexemes[35].slice, "String");
+        assert_eq!(lexemes[36].kind.unambiguous_unchecked(), LexemeKind::PtComma);
+        assert_eq!(lexemes[37].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[38].kind.unambiguous_unchecked(), LexemeKind::IdentVal);
+        assert_eq!(lexemes[38].slice, "last");
+        assert_eq!(lexemes[39].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[40].kind.unambiguous_unchecked(), LexemeKind::IdentType);
+        assert_eq!(lexemes[40].slice, "String");
+        assert_eq!(lexemes[41].kind.unambiguous_unchecked(), LexemeKind::DelimCParen);
+        assert_eq!(lexemes[42].kind.unambiguous_unchecked(), LexemeKind::DelimCParen);
+        assert_eq!(lexemes[43].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[44].kind.ambiguous_unchecked(), (LexemeKind::KwMain, LexemeKind::IdentVal));
+        assert_eq!(lexemes[44].slice, "main");
+        assert_eq!(lexemes[45].kind.unambiguous_unchecked(), LexemeKind::Ws);
+        assert_eq!(lexemes[46].kind.unambiguous_unchecked(), LexemeKind::OpRArw);
     }
 }

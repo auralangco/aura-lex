@@ -13,8 +13,8 @@ pub mod kind;
 /// and the start and end coordinates of the slice. Those can be used as debugging information for 
 /// the parser
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Lexeme<'src> {
-    pub kind: LexemeKind,
+pub struct Lexeme<'src, const N: usize = 1> {
+    pub kind: LexemeAmbiguity,
     pub slice: &'src str,
     pub start: usize,
     pub end: usize,
@@ -47,5 +47,42 @@ impl<T: From<usize>, U: From<usize>> Into<(T, U)> for Coord {
 impl Display for Coord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "(l: {}, c: {})", self.line, self.col)
+    }
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LexemeAmbiguity {
+    Ambiguous(LexemeKind, LexemeKind),
+    Unambiguous(LexemeKind),
+}
+
+impl LexemeAmbiguity {
+    pub fn ambiguous(self) -> Option<(LexemeKind, LexemeKind)> {
+        match self {
+            LexemeAmbiguity::Ambiguous(a, b) => Some((a, b)),
+            _ => None,
+        }
+    }
+
+    pub fn unambiguous(self) -> Option<LexemeKind> {
+        match self {
+            LexemeAmbiguity::Unambiguous(kind) => Some(kind),
+            _ => None,
+        }
+    }
+
+    pub fn ambiguous_unchecked(self) -> (LexemeKind, LexemeKind) {
+        match self {
+            LexemeAmbiguity::Ambiguous(a, b) => (a, b),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn unambiguous_unchecked(self) -> LexemeKind {
+        match self {
+            LexemeAmbiguity::Unambiguous(kind) => kind,
+            _ => unreachable!(),
+        }
     }
 }
